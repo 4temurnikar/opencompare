@@ -1,0 +1,110 @@
+name: Daily CDR refresh
+
+on:
+  schedule:
+    # 17:23 UTC = 4:23 am Melbourne (AEDT) / 3:23 am (AEST)
+    - cron: '23 17 * * *'
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ['site/**', 'pipeline/**']
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      # Banking: 'off' (default in this repo), 'private' (collected, not published) or 'public'.
+      # Set a repository variable CDR_BANKING to change it without editing this file.
+      CDR_BANKING: ${{ vars.CDR_BANKING || 'off' }}
+      # Optional private repository for banking data, e.g. 4temurnikar/ob-banking-data
+      BANKING_DATA_REPO: ${{ vars.BANKING_DATA_REPO }}
+      BANKING_DATA_TOKEN: ${{ secrets.BANKING_DATA_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies (PDF reader)
+        if: github.event_name != 'push'
+        run: npm ci --no-audit --no-fund
+
+      - name: Install headless Chromium (reads pages that need JavaScript)
+        if: github.event_name != 'push'
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.49.1
+          npx playwright install --with-deps chromium
+
+      - name: Restore private banking data (history for change detection)
+        if: github.event_name != 'push' && env.CDR_BANKING == 'private' && env.BANKING_DATA_TOKEN != '' && env.BANKING_DATA_REPO != ''
+        run: |
+          mkdir -p private-data
+          git clone --depth 1 "https://x-access-token:${BANKING_DATA_TOKEN}@github.com/${BANKING_DATA_REPO}.git" private-data/banking
+
+      - name: Banking (private unless CDR_BANKING is 'public')
+        if: github.event_name != 'push'
+        continue-on-error: true
+        run: node pipeline/build.mjs
+
+      - name: Energy plans, insights and data quality
+        if: github.event_name != 'push'
+        env:
+          CDR_WEB_RENDER: '1'
+          # All energy feeds sit on one AER host; 6 parallel requests keeps us polite but quicker
+          CDR_PER_HOST_CONCURRENCY: '6'
+          # Minutes spent reading plan details per run; the rest are picked up on later runs
+          CDR_ENERGY_DETAIL_BUDGET_MIN: '40'
+        run: node pipeline/energy/build.mjs
+
+      - name: Save private banking data
+        if: github.event_name != 'push' && env.CDR_BANKING == 'private' && env.BANKING_DATA_TOKEN != '' && env.BANKING_DATA_REPO != ''
+        run: |
+          cd private-data/banking
+          git config user.name "cdr-refresh-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "No banking changes"; else git commit -q -m "Banking data $(date -u +%Y-%m-%d)" && git push -q origin HEAD:main; fi
+
+      - name: Commit refreshed public data
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "cdr-refresh-bot"
+          git config user.email "actions@users.noreply.github.com"
+          # The data is fully regenerated each run, so never merge it: set it aside,
+          # sync to the latest repo, put the fresh data back and commit. Retries on races.
+          cp -r site/data "$RUNNER_TEMP/newdata"
+          for i in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            rm -rf site/data
+            cp -r "$RUNNER_TEMP/newdata" site/data
+            git add -A site/data
+            if git diff --cached --quiet; then
+              echo "No data changes"
+              break
+            fi
+            git commit -m "Data refresh $(date -u +%Y-%m-%d)"
+            if git push origin HEAD:main; then
+              break
+            fi
+            echo "Push rejected, retrying ($i)"
+            sleep 5
+          done
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - uses: actions/deploy-pages@v4
