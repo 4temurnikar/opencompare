@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenCompare</title>
+  <meta name="description" content="Independent comparison of Australian energy plans using official Consumer Data Right data, refreshed every morning." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="brandmark" href="#home" aria-label="OpenCompare, home">
+        <svg class="logo" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+          <defs><clipPath id="logo-left"><circle cx="13" cy="17" r="9.5" /></clipPath></defs>
+          <circle cx="21" cy="17" r="9.5" class="logo-lens" clip-path="url(#logo-left)" />
+          <circle cx="13" cy="17" r="9.5" class="logo-ring" />
+          <circle cx="21" cy="17" r="9.5" class="logo-ring" />
+        </svg>
+        <span class="wordmark"><span class="wm-name">OpenCompare</span><span class="wm-sub">Independent comparisons from official open data</span></span>
+      </a>
+      <nav class="menu" id="menu" aria-label="Main">
+        <a href="#home">Home</a>
+        <div class="menu-group">
+          <button class="menu-trigger" type="button" data-group="energy" aria-expanded="false" aria-controls="menu-energy">
+            Energy
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
+          <div class="menu-panel" id="menu-energy" hidden>
+            <a href="#electricity">Electricity plans</a>
+            <a href="#gas">Gas plans</a>
+            <a href="#solar">Solar feed-in tariffs</a>
+            <a href="#retailers" class="menu-all">All energy retailers</a>
+          </div>
+        </div>
+        <div class="menu-group" hidden>
+          <button class="menu-trigger" type="button" data-group="banking" aria-expanded="false" aria-controls="menu-banking">
+            Banking
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
+          <div class="menu-panel" id="menu-banking" hidden>
+            <a href="#home-loans">Home loans</a>
+            <a href="#savings">Savings accounts</a>
+            <a href="#term-deposits">Term deposits</a>
+            <a href="#credit-cards">Credit cards</a>
+            <a href="#personal-loans">Personal loans</a>
+            <a href="#banking-insights">Banking insights</a>
+            <a href="#products" class="menu-all">All banking products</a>
+          </div>
+        </div>
+        <a href="#insights">Insights</a>
+        <a href="#quality">Data quality</a>
+        <a href="#about">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <p id="freshness" class="freshness" aria-live="polite">Loading data…</p>
+    <section id="tab-insights" class="tab"></section>
+    <section id="tab-home" class="tab" hidden></section>
+    <section id="tab-deposits" class="tab" hidden></section>
+    <section id="tab-cards" class="tab" hidden></section>
+    <section id="tab-rankings" class="tab" hidden></section>
+    <section id="tab-energy" class="tab" hidden></section>
+    <section id="tab-retailers" class="tab" hidden></section>
+    <section id="tab-energy-insights" class="tab" hidden></section>
+    <section id="tab-all" class="tab" hidden></section>
+    <section id="tab-quality" class="tab" hidden></section>
+    <section id="tab-about" class="tab" hidden></section>
+  </main>
+
+  <div id="drawer" class="drawer" hidden>
+    <div class="drawer-backdrop" data-close></div>
+    <aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+      <button class="drawer-close" data-close aria-label="Close">×</button>
+      <div id="drawer-body"></div>
+    </aside>
+  </div>
+
+  <footer class="wrap foot">
+    Prices and rates are as published by each provider through the Consumer Data Right and may differ from what you're offered. Cost estimates are based on the usage you enter and include GST.
+    This is general information only, not financial advice. Check the provider's fact sheet or product disclosure before deciding.
+  </footer>
+  <script type="module" src="main.js"></script>
+</body>
+</html>

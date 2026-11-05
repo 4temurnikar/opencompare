@@ -1,0 +1,1203 @@
+{
+ "source": "ConsumerDataStandardsAustralia/standards swagger-gen/api/cds_banking.json",
+ "specVersion": "1.36.0",
+ "listVersion": 5,
+ "detailVersion": 7,
+ "root": "ResponseBankingProductByIdV7",
+ "schemas": {
+  "ResponseBankingProductByIdV7": {
+   "required": [
+    "data",
+    "links"
+   ],
+   "type": "object",
+   "properties": {
+    "data": {
+     "$ref": "#/components/schemas/BankingProductDetailV7"
+    },
+    "links": {
+     "$ref": "#/components/schemas/Links"
+    },
+    "meta": {
+     "$ref": "#/components/schemas/Meta"
+    }
+   }
+  },
+  "Meta": {
+   "type": "object"
+  },
+  "Links": {
+   "required": [
+    "self"
+   ],
+   "type": "object",
+   "properties": {
+    "self": {
+     "type": "string",
+     "description": "Fully qualified link that generated the current response document.",
+     "x-cds-type": "URIString"
+    }
+   }
+  },
+  "BankingProductDetailV7": {
+   "allOf": [
+    {
+     "$ref": "#/components/schemas/BankingProductV6"
+    },
+    {
+     "type": "object",
+     "properties": {
+      "bundles": {
+       "type": "array",
+       "description": "An array of bundles that this product participates in. Each bundle is described by free form information but also by a list of _productID_ values of the other p",
+       "items": {
+        "$ref": "#/components/schemas/BankingProductBundle"
+       }
+      },
+      "features": {
+       "type": "array",
+       "description": "Array of features and limitations of the product.",
+       "items": {
+        "$ref": "#/components/schemas/BankingProductFeatureV4"
+       }
+      },
+      "constraints": {
+       "type": "array",
+       "description": "Constraints on the application for the product such as minimum balances or limit thresholds.",
+       "items": {
+        "$ref": "#/components/schemas/BankingProductConstraintV3"
+       }
+      },
+      "eligibility": {
+       "type": "array",
+       "description": "Eligibility criteria for the product.",
+       "items": {
+        "$ref": "#/components/schemas/BankingProductEligibilityV2"
+       }
+      },
+      "fees": {
+       "type": "array",
+       "description": "Fees applicable to the product.",
+       "items": {
+        "$ref": "#/components/schemas/BankingProductFeeV2"
+       }
+      },
+      "depositRates": {
+       "type": "array",
+       "description": "Interest rates available for deposits.",
+       "items": {
+        "$ref": "#/components/schemas/BankingProductDepositRateV2"
+       }
+      },
+      "lendingRates": {
+       "type": "array",
+       "description": "Interest rates charged against lending balances.",
+       "items": {
+        "$ref": "#/components/schemas/BankingProductLendingRateV3"
+       }
+      },
+      "instalments": {
+       "$ref": "#/components/schemas/BankingProductInstalments"
+      }
+     }
+    }
+   ]
+  },
+  "BankingProductInstalments": {
+   "description": "Details of instalment features on the account.",
+   "required": [
+    "minimumSplit",
+    "maximumSplit"
+   ],
+   "type": "object",
+   "properties": {
+    "maximumConcurrentPlans": {
+     "type": "integer",
+     "description": "Maximum number of concurrent active instalment plans that may be created on the account. If `null`, there is no predetermined maximum number.",
+     "x-cds-type": "NaturalNumber"
+    },
+    "instalmentsLimit": {
+     "type": "string",
+     "description": "Maximum combined limit of all instalment plans that may be created on the account. If `null` or not present, an opened account balance _creditLimit_ may be assu",
+     "x-cds-type": "AmountString"
+    },
+    "minimumPlanValue": {
+     "type": "string",
+     "description": "Minimum value that can be opened as an instalment plan.",
+     "x-cds-type": "AmountString"
+    },
+    "maximumPlanValue": {
+     "type": "string",
+     "description": "Maximum value that can be opened as an instalment plan. If `null` or not present, _instalmentsLimit_ is assumed to be the maximum individual plan value.",
+     "x-cds-type": "AmountString"
+    },
+    "minimumSplit": {
+     "type": "integer",
+     "description": "Minimum number of instalment payments a plan can be created with.",
+     "x-cds-type": "PositiveInteger"
+    },
+    "maximumSplit": {
+     "type": "integer",
+     "description": "Maximum number of instalment payments a plan can be created with.",
+     "x-cds-type": "PositiveInteger"
+    }
+   }
+  },
+  "BankingProductLendingRateV3": {
+   "required": [
+    "lendingRateType",
+    "rate",
+    "applicationType",
+    "repaymentType",
+    "loanPurpose"
+   ],
+   "type": "object",
+   "properties": {
+    "lendingRateType": {
+     "type": "string",
+     "description": "The type of rate (`FIXED`, `VARIABLE`, etc.) For further details, refer to [Product Lending Rate Types](#tocSproductlendingratetypedoc).",
+     "enum": [
+      "BALANCE_TRANSFER",
+      "BUNDLE_DISCOUNT_FIXED",
+      "BUNDLE_DISCOUNT_VARIABLE",
+      "CASH_ADVANCE",
+      "DISCOUNT",
+      "FIXED",
+      "FLOATING",
+      "INTRODUCTORY",
+      "MARKET_LINKED",
+      "PENALTY",
+      "PURCHASE",
+      "VARIABLE"
+     ]
+    },
+    "rate": {
+     "type": "string",
+     "description": "The rate to be applied.",
+     "x-cds-type": "RateString"
+    },
+    "comparisonRate": {
+     "type": "string",
+     "description": "A comparison rate equivalent for this rate.",
+     "x-cds-type": "RateString"
+    },
+    "calculationFrequency": {
+     "type": "string",
+     "description": "The period after which the rate is applied to the balance to calculate the amount due for the period. Calculation of the amount is often daily (as balances may ",
+     "x-cds-type": "ExternalRef"
+    },
+    "applicationType": {
+     "type": "string",
+     "description": "The type of approach used to apply the rate to the account.",
+     "enum": [
+      "MATURITY",
+      "PERIODIC",
+      "UPFRONT"
+     ]
+    },
+    "applicationFrequency": {
+     "type": "string",
+     "description": "The period after which the calculated amount(s) (see _calculationFrequency_) are 'applied' (i.e. debited or credited) to the account. Formatted according to [IS",
+     "x-cds-type": "ExternalRef"
+    },
+    "interestPaymentDue": {
+     "type": "string",
+     "description": "When loan payments are due to be paid within each period. The investment benefit of earlier payments affect the rate that can be offered.",
+     "enum": [
+      "IN_ADVANCE",
+      "IN_ARREARS"
+     ]
+    },
+    "repaymentType": {
+     "type": "string",
+     "description": "Option in place for repayments.",
+     "enum": [
+      "INTEREST_ONLY",
+      "OTHER",
+      "PRINCIPAL_AND_INTEREST",
+      "UNCONSTRAINED"
+     ]
+    },
+    "loanPurpose": {
+     "type": "string",
+     "description": "The reason for taking out the loan.",
+     "enum": [
+      "INVESTMENT",
+      "OTHER",
+      "OWNER_OCCUPIED",
+      "UNCONSTRAINED"
+     ]
+    },
+    "tiers": {
+     "type": "array",
+     "description": "Qualifying criteria or conditions relevant to the associated rate.",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductRateTierV4"
+     }
+    },
+    "applicabilityConditions": {
+     "type": "array",
+     "description": "Applicability conditions for the rate.",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductRateConditionV2"
+     }
+    },
+    "additionalValue": {
+     "type": "string",
+     "description": "Generic field containing additional information relevant to the [_lendingRateType_](#tocSproductlendingratetypedoc) specified. Whether mandatory or not is depen"
+    },
+    "additionalInfo": {
+     "type": "string",
+     "description": "Display text providing more information on the rate."
+    },
+    "additionalInfoUri": {
+     "type": "string",
+     "description": "Link to a web page with more information on this rate.",
+     "x-cds-type": "URIString"
+    }
+   },
+   "x-conditional": [
+    "additionalValue",
+    "applicationFrequency"
+   ]
+  },
+  "BankingProductRateConditionV2": {
+   "type": "object",
+   "description": "Defines a condition for the applicability of a rate.",
+   "properties": {
+    "rateApplicabilityType": {
+     "type": "string",
+     "description": "Category of applicability condition associated with the rate. For more information refer to [Rate and Tier Applicability Types](#tocSbankingproductratecondition",
+     "enum": [
+      "MIN_DEPOSITS",
+      "MIN_DEPOSIT_AMOUNT",
+      "DEPOSIT_BALANCE_INCREASED",
+      "EXISTING_CUST",
+      "NEW_ACCOUNTS",
+      "NEW_CUSTOMER",
+      "NEW_CUSTOMER_TO_GROUP",
+      "ONLINE_ONLY",
+      "OTHER",
+      "MIN_PURCHASES",
+      "MAX_WITHDRAWALS",
+      "MAX_WITHDRAWAL_AMOUNT"
+     ]
+    },
+    "additionalValue": {
+     "type": "string",
+     "description": "Generic field containing additional information relevant to the _rateApplicabilityType_ specified. Whether mandatory or not is dependent on the value of [_rateA"
+    },
+    "additionalInfo": {
+     "type": "string",
+     "description": "Display text providing more information on the condition. Mandatory if the [_rateApplicabilityType_](#tocSbankingproductrateconditiondoc) value is `OTHER`."
+    },
+    "additionalInfoUri": {
+     "type": "string",
+     "description": "Link to a web page with more information on this condition.",
+     "x-cds-type": "URIString"
+    }
+   },
+   "required": [
+    "rateApplicabilityType"
+   ],
+   "x-conditional": [
+    "additionalValue",
+    "additionalInfo"
+   ]
+  },
+  "BankingProductRateTierV4": {
+   "required": [
+    "minimumValue",
+    "name",
+    "unitOfMeasure"
+   ],
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string",
+     "description": "A display name for the tier."
+    },
+    "unitOfMeasure": {
+     "type": "string",
+     "description": "The unit of measure that applies to the _minimumValue_ and _maximumValue_ values, e.g.,<ul><li>`DOLLAR` for a dollar amount (with values in AmountString format)",
+     "enum": [
+      "DAY",
+      "DOLLAR",
+      "MONTH",
+      "PERCENT"
+     ]
+    },
+    "minimumValue": {
+     "type": "string",
+     "description": "The number of _unitOfMeasure_ units that form the lower bound of the tier. The tier should be inclusive of this value."
+    },
+    "maximumValue": {
+     "type": "string",
+     "description": "The number of _unitOfMeasure_ units that form the upper bound of the tier or band. For a tier with a discrete value (as opposed to a range of values e.g., 1 mon"
+    },
+    "rateApplicationMethod": {
+     "type": "string",
+     "description": "The method used to calculate the amount to be applied using one or more tiers. A single rate may be applied to the entire balance or each applicable tier rate i",
+     "enum": [
+      "PER_TIER",
+      "WHOLE_BALANCE"
+     ]
+    },
+    "applicabilityConditions": {
+     "type": "array",
+     "description": "Applicability conditions for the rate tier.",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductRateConditionV2"
+     }
+    },
+    "additionalInfo": {
+     "type": "string",
+     "description": "Display text providing more information on the rate tier."
+    },
+    "additionalInfoUri": {
+     "type": "string",
+     "description": "Link to a web page with more information on this rate tier.",
+     "x-cds-type": "URIString"
+    }
+   },
+   "description": "Defines the criteria and conditions for which a rate applies."
+  },
+  "BankingProductDepositRateV2": {
+   "required": [
+    "depositRateType",
+    "rate",
+    "applicationType"
+   ],
+   "type": "object",
+   "properties": {
+    "depositRateType": {
+     "type": "string",
+     "description": "The type of rate (`FIXED`, `VARIABLE`, `BONUS`, etc.) For further details, refer to [Product Deposit Rate Types](#tocSproductdepositratetypedoc).",
+     "enum": [
+      "BONUS",
+      "BUNDLE_BONUS",
+      "FIXED",
+      "FLOATING",
+      "INTRODUCTORY",
+      "MARKET_LINKED",
+      "VARIABLE"
+     ]
+    },
+    "rate": {
+     "type": "string",
+     "description": "The rate to be applied.",
+     "x-cds-type": "RateString"
+    },
+    "calculationFrequency": {
+     "type": "string",
+     "description": "The period after which the rate is applied to the balance to calculate the amount due for the period. Calculation of the amount is often daily (as balances may ",
+     "x-cds-type": "ExternalRef"
+    },
+    "applicationType": {
+     "type": "string",
+     "description": "The type of approach used to apply the rate to the account.",
+     "enum": [
+      "MATURITY",
+      "PERIODIC",
+      "UPFRONT"
+     ]
+    },
+    "applicationFrequency": {
+     "type": "string",
+     "description": "The period after which the calculated amount(s) (see _calculationFrequency_) are 'applied' (i.e. debited or credited) to the account. Formatted according to [IS",
+     "x-cds-type": "ExternalRef"
+    },
+    "tiers": {
+     "type": "array",
+     "description": "Qualifying criteria or conditions relevant to the associated rate.",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductRateTierV4"
+     }
+    },
+    "applicabilityConditions": {
+     "type": "array",
+     "description": "Applicability conditions for the rate.",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductRateConditionV2"
+     }
+    },
+    "additionalValue": {
+     "type": "string",
+     "description": "Generic field containing additional information relevant to the [_depositRateType_](#tocSproductdepositratetypedoc) specified. Whether mandatory or not is depen"
+    },
+    "additionalInfo": {
+     "type": "string",
+     "description": "Display text providing more information on the rate."
+    },
+    "additionalInfoUri": {
+     "type": "string",
+     "description": "Link to a web page with more information on this rate.",
+     "x-cds-type": "URIString"
+    }
+   },
+   "x-conditional": [
+    "additionalValue",
+    "applicationFrequency"
+   ]
+  },
+  "BankingProductFeeV2": {
+   "required": [
+    "name",
+    "feeType",
+    "feeMethodUType"
+   ],
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string",
+     "description": "Name of the fee."
+    },
+    "feeType": {
+     "type": "string",
+     "description": "The type of fee. For further details, refer to [Product Fee Types](#tocSproductfeetypedoc).",
+     "enum": [
+      "CASH_ADVANCE",
+      "DEPOSIT",
+      "DISHONOUR",
+      "ENQUIRY",
+      "EVENT",
+      "EXIT",
+      "LATE_PAYMENT",
+      "OTHER",
+      "PAYMENT",
+      "PERIODIC",
+      "PURCHASE",
+      "REPLACEMENT",
+      "TRANSACTION",
+      "UPFRONT",
+      "UPFRONT_PER_PLAN",
+      "VARIATION",
+      "WITHDRAWAL"
+     ]
+    },
+    "feeMethodUType": {
+     "type": "string",
+     "description": "Reference to the applicable fee charging method structure.",
+     "enum": [
+      "fixedAmount",
+      "rateBased",
+      "variable"
+     ]
+    },
+    "fixedAmount": {
+     "description": "Mandatory if the _feeMethodUType_ value is `fixedAmount`. Where the fee is a specific amount.",
+     "allOf": [
+      {
+       "$ref": "#/components/schemas/BankingFeeAmount"
+      }
+     ]
+    },
+    "rateBased": {
+     "description": "Mandatory if the _feeMethodUType_ value is `rateBased`. Where the fee is based on a type of rate.",
+     "allOf": [
+      {
+       "$ref": "#/components/schemas/BankingFeeRate"
+      }
+     ]
+    },
+    "variable": {
+     "description": "Mandatory if the _feeMethodUType_ value is `variable`. Where the amount or rate may not be known until the fee is incurred.",
+     "allOf": [
+      {
+       "$ref": "#/components/schemas/BankingFeeRange"
+      }
+     ]
+    },
+    "feeCap": {
+     "type": "string",
+     "description": "The cap amount if multiple occurrences of the fee are capped to a limit.",
+     "x-cds-type": "AmountString"
+    },
+    "feeCapPeriod": {
+     "type": "string",
+     "description": "Specifies a duration over which multiple occurrences of the fee will be capped. Formatted according to [ISO 8601 Durations](https://en.wikipedia.org/wiki/ISO_86",
+     "x-cds-type": "ExternalRef"
+    },
+    "currency": {
+     "type": "string",
+     "description": "The currency the fee will be charged in. Assumes `AUD` if absent.",
+     "default": "AUD",
+     "x-cds-type": "CurrencyString"
+    },
+    "additionalValue": {
+     "type": "string",
+     "description": "Generic field containing additional information relevant to the [_feeType_](#tocSproductfeetypedoc) specified. Whether mandatory or not is dependent on the valu"
+    },
+    "additionalInfo": {
+     "type": "string",
+     "description": "Display text providing more information on the fee. Mandatory if the [_feeType_](#tocSproductfeetypedoc) value is `OTHER`."
+    },
+    "additionalInfoUri": {
+     "type": "string",
+     "description": "Link to a web page with more information on this fee.",
+     "x-cds-type": "URIString"
+    },
+    "discounts": {
+     "type": "array",
+     "description": "An optional list of discounts to this fee that may be available.",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductDiscountV2"
+     }
+    }
+   },
+   "x-conditional": [
+    "fixedAmount",
+    "rateBased",
+    "variable",
+    "additionalValue",
+    "additionalInfo"
+   ]
+  },
+  "BankingProductDiscountV2": {
+   "description": "Note that the currency of the fee discount is expected to be the same as the currency of the fee itself.",
+   "required": [
+    "description",
+    "discountType",
+    "discountMethodUType"
+   ],
+   "type": "object",
+   "properties": {
+    "description": {
+     "type": "string",
+     "description": "Description of the discount."
+    },
+    "discountType": {
+     "type": "string",
+     "description": "The type of discount. For further details, refer to [Product Discount Types](#tocSproductdiscounttypedoc).",
+     "enum": [
+      "BALANCE",
+      "DEPOSITS",
+      "ELIGIBILITY_ONLY",
+      "FEE_CAP",
+      "PAYMENTS"
+     ]
+    },
+    "discountMethodUType": {
+     "type": "string",
+     "description": "Reference to the applicable fee discount method structure.",
+     "enum": [
+      "fixedAmount",
+      "rateBased"
+     ]
+    },
+    "fixedAmount": {
+     "description": "Mandatory if the _discountMethodUType_ value is `fixedAmount`. Where the discount is a specific amount.",
+     "allOf": [
+      {
+       "$ref": "#/components/schemas/BankingFeeDiscountAmount"
+      }
+     ]
+    },
+    "rateBased": {
+     "description": "Mandatory if the _discountMethodUType_ value is `rateBased`. Where the discount is based on a type of rate. Unless noted in _additionalInfo_, assumes the applic",
+     "allOf": [
+      {
+       "$ref": "#/components/schemas/BankingFeeDiscountRate"
+      }
+     ]
+    },
+    "additionalValue": {
+     "type": "string",
+     "description": "Generic field containing additional information relevant to the [_discountType_](#tocSproductdiscounttypedoc) specified. Whether mandatory or not is dependent o"
+    },
+    "additionalInfo": {
+     "type": "string",
+     "description": "Display text providing more information on the discount."
+    },
+    "additionalInfoUri": {
+     "type": "string",
+     "description": "Link to a web page with more information on this discount.",
+     "x-cds-type": "URIString"
+    },
+    "eligibility": {
+     "type": "array",
+     "description": "Eligibility constraints that apply to this discount. Mandatory if the [_discountType_](#tocSproductdiscounttypedoc) value is `ELIGIBILITY_ONLY`.",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductDiscountEligibility"
+     }
+    }
+   },
+   "x-conditional": [
+    "fixedAmount",
+    "rateBased",
+    "additionalValue",
+    "eligibility"
+   ]
+  },
+  "BankingProductDiscountEligibility": {
+   "required": [
+    "discountEligibilityType"
+   ],
+   "type": "object",
+   "properties": {
+    "discountEligibilityType": {
+     "type": "string",
+     "description": "The type of the specific eligibility constraint for a discount. For further details, refer to [Product Discount Eligibility Types](#tocSproductdiscounteligibili",
+     "enum": [
+      "BUSINESS",
+      "EMPLOYMENT_STATUS",
+      "INTRODUCTORY",
+      "MAX_AGE",
+      "MIN_AGE",
+      "MIN_INCOME",
+      "MIN_TURNOVER",
+      "NATURAL_PERSON",
+      "OTHER",
+      "PENSION_RECIPIENT",
+      "RESIDENCY_STATUS",
+      "STAFF",
+      "STUDENT"
+     ]
+    },
+    "additionalValue": {
+     "type": "string",
+     "description": "Generic field containing additional information relevant to the [_discountEligibilityType_](#tocSproductdiscounteligibilitydoc) specified. Whether mandatory or "
+    },
+    "additionalInfo": {
+     "type": "string",
+     "description": "Display text providing more information on this eligibility constraint. Mandatory if the [_discountEligibilityType_](#tocSproductdiscounteligibilitydoc) value i"
+    },
+    "additionalInfoUri": {
+     "type": "string",
+     "description": "Link to a web page with more information on this eligibility constraint.",
+     "x-cds-type": "URIString"
+    }
+   },
+   "x-conditional": [
+    "additionalInfo",
+    "additionalValue"
+   ]
+  },
+  "BankingFeeDiscountRate": {
+   "type": "object",
+   "required": [
+    "rateType",
+    "rate"
+   ],
+   "properties": {
+    "rateType": {
+     "type": "string",
+     "description": "Type of fee rate discount calculation.<ul><li>`BALANCE` A fee rate discount based on a balance</li><li>`FEE` A fee rate discount based on the fee to which the d",
+     "enum": [
+      "BALANCE",
+      "FEE",
+      "INTEREST_ACCRUED",
+      "TRANSACTION"
+     ]
+    },
+    "rate": {
+     "type": "string",
+     "x-cds-type": "RateString",
+     "description": "The fee rate discount calculated according to the _rateType_."
+    },
+    "amountRange": {
+     "$ref": "#/components/schemas/BankingFeeDiscountRange"
+    }
+   }
+  },
+  "BankingFeeDiscountRange": {
+   "type": "object",
+   "description": "A minimum or maximum fee discount amount where a specific fixed amount is not known until the fee is incurred.",
+   "properties": {
+    "discountMinimum": {
+     "type": "string",
+     "description": "The minimum fee discount that will be applied per occurrence.",
+     "x-cds-type": "AmountString"
+    },
+    "discountMaximum": {
+     "type": "string",
+     "description": "The maximum fee discount that will be applied per occurrence.",
+     "x-cds-type": "AmountString"
+    }
+   }
+  },
+  "BankingFeeDiscountAmount": {
+   "type": "object",
+   "required": [
+    "amount"
+   ],
+   "properties": {
+    "amount": {
+     "type": "string",
+     "description": "The specific amount discounted from the fee each time it is incurred.",
+     "x-cds-type": "AmountString"
+    }
+   }
+  },
+  "BankingFeeRange": {
+   "type": "object",
+   "description": "A minimum or maximum fee amount where a specific fixed amount is not known until the fee is incurred.",
+   "properties": {
+    "feeMinimum": {
+     "type": "string",
+     "description": "The minimum fee that will be charged per occurrence.",
+     "x-cds-type": "AmountString"
+    },
+    "feeMaximum": {
+     "type": "string",
+     "description": "The maximum fee that will be charged per occurrence.",
+     "x-cds-type": "AmountString"
+    }
+   }
+  },
+  "BankingFeeRate": {
+   "type": "object",
+   "required": [
+    "rateType",
+    "rate"
+   ],
+   "properties": {
+    "rateType": {
+     "type": "string",
+     "description": "Type of fee rate calculation.<ul><li>`BALANCE` A fee rate based on a balance</li><li>`INTEREST_ACCRUED` A fee rate based on interest accrued</li><li>`TRANSACTIO",
+     "enum": [
+      "BALANCE",
+      "INTEREST_ACCRUED",
+      "TRANSACTION"
+     ]
+    },
+    "rate": {
+     "type": "string",
+     "x-cds-type": "RateString",
+     "description": "The fee rate calculated according to the _rateType_."
+    },
+    "accrualFrequency": {
+     "type": "string",
+     "description": "The indicative frequency with which the fee is calculated on the account if applicable. Formatted according to [ISO 8601 Durations](https://en.wikipedia.org/wik",
+     "x-cds-type": "ExternalRef"
+    },
+    "amountRange": {
+     "$ref": "#/components/schemas/BankingFeeRange"
+    }
+   },
+   "x-conditional": [
+    "balanceRate",
+    "transactionRate",
+    "accruedRate"
+   ]
+  },
+  "BankingFeeAmount": {
+   "type": "object",
+   "required": [
+    "amount"
+   ],
+   "properties": {
+    "amount": {
+     "type": "string",
+     "description": "The specific amount charged for the fee each time it is incurred.",
+     "x-cds-type": "AmountString"
+    }
+   }
+  },
+  "BankingProductEligibilityV2": {
+   "required": [
+    "eligibilityType"
+   ],
+   "type": "object",
+   "properties": {
+    "eligibilityType": {
+     "type": "string",
+     "description": "The type of eligibility criteria described. For further details, refer to [Product Eligibility Types](#tocSproducteligibilitytypedoc).",
+     "enum": [
+      "BUSINESS",
+      "EMPLOYMENT_STATUS",
+      "MAX_AGE",
+      "MIN_AGE",
+      "MIN_INCOME",
+      "MIN_TURNOVER",
+      "NATURAL_PERSON",
+      "OTHER",
+      "PENSION_RECIPIENT",
+      "RESIDENCY_STATUS",
+      "STAFF",
+      "STUDENT"
+     ]
+    },
+    "additionalValue": {
+     "type": "string",
+     "description": "Generic field containing additional information relevant to the [_eligibilityType_](#tocSproducteligibilitytypedoc) specified. Whether mandatory or not is depen"
+    },
+    "additionalInfo": {
+     "type": "string",
+     "description": "Display text providing more information on the [eligibility](#tocSproducteligibilitytypedoc) criteria. Mandatory if the [_eligibilityType_](#tocSproducteligibil"
+    },
+    "additionalInfoUri": {
+     "type": "string",
+     "description": "Link to a web page with more information on this eligibility criteria.",
+     "x-cds-type": "URIString"
+    }
+   },
+   "x-conditional": [
+    "additionalValue",
+    "additionalInfo"
+   ]
+  },
+  "BankingProductConstraintV3": {
+   "required": [
+    "constraintType"
+   ],
+   "type": "object",
+   "properties": {
+    "constraintType": {
+     "type": "string",
+     "description": "The type of constraint described. For further details, refer to [Product Constraint Types](#tocSproductconstrainttypedoc).",
+     "enum": [
+      "MAX_BALANCE",
+      "MAX_LIMIT",
+      "MAX_LVR",
+      "MIN_BALANCE",
+      "MIN_LIMIT",
+      "MIN_LVR",
+      "OPENING_BALANCE",
+      "OTHER"
+     ]
+    },
+    "additionalValue": {
+     "type": "string",
+     "description": "Generic field containing additional information relevant to the [_constraintType_](#tocSproductconstrainttypedoc) specified. Whether mandatory or not is depende"
+    },
+    "additionalInfo": {
+     "type": "string",
+     "description": "Display text providing more information on the constraint. Mandatory if the [_constraintType_](#tocSproductconstrainttypedoc) value is `OTHER`."
+    },
+    "additionalInfoUri": {
+     "type": "string",
+     "description": "Link to a web page with more information on the constraint.",
+     "x-cds-type": "URIString"
+    }
+   },
+   "x-conditional": [
+    "additionalValue",
+    "additionalInfo"
+   ]
+  },
+  "BankingProductFeatureV4": {
+   "required": [
+    "featureType"
+   ],
+   "type": "object",
+   "properties": {
+    "featureType": {
+     "type": "string",
+     "description": "The type of feature described. For further details, refer to [Product Feature Types](#tocSproductfeaturetypedoc).",
+     "enum": [
+      "ADDITIONAL_CARDS",
+      "BALANCE_TRANSFERS",
+      "BILL_PAYMENT",
+      "BONUS_REWARDS",
+      "CARD_ACCESS",
+      "CASHBACK_OFFER",
+      "COMPLEMENTARY_PRODUCT_DISCOUNTS",
+      "EXTRA_DOWN_PAYMENT",
+      "DIGITAL_BANKING",
+      "DIGITAL_WALLET",
+      "DONATE_INTEREST",
+      "EXTRA_REPAYMENTS",
+      "FRAUD_PROTECTION",
+      "FREE_TXNS",
+      "FREE_TXNS_ALLOWANCE",
+      "FUNDS_AVAILABLE_AFTER",
+      "GUARANTOR",
+      "INSTALMENT_PLAN",
+      "INSURANCE",
+      "INTEREST_FREE",
+      "INTEREST_FREE_TRANSFERS",
+      "LOYALTY_PROGRAM",
+      "NOTIFICATIONS",
+      "NPP_ENABLED",
+      "NPP_PAYID",
+      "OFFSET",
+      "OTHER",
+      "OVERDRAFT",
+      "REDRAW",
+      "RELATIONSHIP_MANAGEMENT",
+      "UNLIMITED_TXNS"
+     ]
+    },
+    "additionalValue": {
+     "type": "string",
+     "description": "Generic field containing additional information relevant to the [_featureType_](#tocSproductfeaturetypedoc) specified. Whether mandatory or not is dependent on "
+    },
+    "additionalInfo": {
+     "type": "string",
+     "description": "Display text providing more information on the feature. Mandatory if the [_featureType_](#tocSproductfeaturetypedoc) value is `OTHER`."
+    },
+    "additionalInfoUri": {
+     "type": "string",
+     "description": "Link to a web page with more information on this feature.",
+     "x-cds-type": "URIString"
+    }
+   },
+   "x-conditional": [
+    "additionalValue",
+    "additionalInfo"
+   ]
+  },
+  "BankingProductBundle": {
+   "required": [
+    "description",
+    "name"
+   ],
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string",
+     "description": "Name of the bundle."
+    },
+    "description": {
+     "type": "string",
+     "description": "Description of the bundle."
+    },
+    "additionalInfo": {
+     "type": "string",
+     "description": "Display text providing more information on the bundle."
+    },
+    "additionalInfoUri": {
+     "type": "string",
+     "description": "Link to a web page with more information on the bundle criteria and benefits.",
+     "x-cds-type": "URIString"
+    },
+    "productIds": {
+     "type": "array",
+     "description": "Array of _productID_ values for products included in the bundle that are available via the product endpoints. Note that this array is not intended to represent ",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductId"
+     }
+    }
+   }
+  },
+  "BankingProductId": {
+   "type": "string",
+   "description": "A data holder-specific unique identifier for a Banking product. This identifier must be unique to a product but does not otherwise need to adhere to ID permanen",
+   "x-cds-type": "ASCIIString"
+  },
+  "BankingProductV6": {
+   "required": [
+    "brand",
+    "description",
+    "isTailored",
+    "lastUpdated",
+    "name",
+    "productCategory",
+    "productId"
+   ],
+   "type": "object",
+   "properties": {
+    "productId": {
+     "$ref": "#/components/schemas/BankingProductId"
+    },
+    "effectiveFrom": {
+     "type": "string",
+     "description": "The date and time from which this product is effective (i.e. is available for origination). Used to enable the articulation of products to the regime before the",
+     "x-cds-type": "DateTimeString"
+    },
+    "effectiveTo": {
+     "type": "string",
+     "description": "The date and time at which this product will be retired and will no longer be offered. Used to enable the managed deprecation of products.",
+     "x-cds-type": "DateTimeString"
+    },
+    "lastUpdated": {
+     "type": "string",
+     "description": "The last date and time that the information for this product was changed (or the creation date for the product if it has never been altered).",
+     "x-cds-type": "DateTimeString"
+    },
+    "productCategory": {
+     "$ref": "#/components/schemas/BankingProductCategoryV2"
+    },
+    "name": {
+     "type": "string",
+     "description": "The display name of the product."
+    },
+    "description": {
+     "type": "string",
+     "description": "A description of the product."
+    },
+    "brand": {
+     "type": "string",
+     "description": "A label of the brand for the product. Able to be used for filtering. For data holders with single brands this value is still required."
+    },
+    "brandName": {
+     "type": "string",
+     "description": "An optional display name of the brand."
+    },
+    "brandGroup": {
+     "type": "string",
+     "x-cds-type": "ASCIIString",
+     "description": "The *brandGroup* of a consumer data sharing brand that the product is associated with."
+    },
+    "applicationUri": {
+     "type": "string",
+     "description": "A link to an application web page where this product can be applied for.",
+     "x-cds-type": "URIString"
+    },
+    "isTailored": {
+     "type": "boolean",
+     "description": "Indicates whether the product is specifically tailored to a circumstance. In this case fees and prices are significantly negotiated depending on context. While "
+    },
+    "additionalInformation": {
+     "$ref": "#/components/schemas/BankingProductAdditionalInformationV2"
+    },
+    "cardArt": {
+     "type": "array",
+     "description": "Information about any cards available with the account.",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductCardArt"
+     }
+    }
+   }
+  },
+  "BankingProductCardArt": {
+   "required": [
+    "cardScheme",
+    "cardType",
+    "imageUri"
+   ],
+   "type": "object",
+   "properties": {
+    "cardScheme": {
+     "type": "string",
+     "description": "Card scheme available with the account.",
+     "enum": [
+      "AMEX",
+      "EFTPOS",
+      "MASTERCARD",
+      "VISA",
+      "OTHER"
+     ]
+    },
+    "cardType": {
+     "type": "string",
+     "description": "Card type available with the account.",
+     "enum": [
+      "CHARGE",
+      "CREDIT",
+      "DEBIT"
+     ]
+    },
+    "title": {
+     "type": "string",
+     "description": "Display label for the specific image."
+    },
+    "imageUri": {
+     "type": "string",
+     "description": "URI reference to a PNG, JPG or GIF image with proportions defined by ISO 7810 ID-1 and width no greater than 512 pixels. The URI reference may be a link or url-",
+     "x-cds-type": "URIString"
+    }
+   }
+  },
+  "BankingProductAdditionalInformationV2": {
+   "type": "object",
+   "properties": {
+    "overviewUri": {
+     "type": "string",
+     "description": "General overview of the product. Mandatory if _additionalOverviewUris_ includes one or more supporting documents.",
+     "x-cds-type": "URIString"
+    },
+    "termsUri": {
+     "type": "string",
+     "description": "Terms and conditions for the product. Mandatory if _additionalTermsUris_ includes one or more supporting documents.",
+     "x-cds-type": "URIString"
+    },
+    "eligibilityUri": {
+     "type": "string",
+     "description": "Eligibility rules and criteria for the product. Mandatory if _additionalEligibilityUris_ includes one or more supporting documents.",
+     "x-cds-type": "URIString"
+    },
+    "feesAndPricingUri": {
+     "type": "string",
+     "description": "Description of fees, pricing, discounts, exemptions and bonuses for the product. Mandatory if _additionalFeesAndPricingUris_ includes one or more supporting doc",
+     "x-cds-type": "URIString"
+    },
+    "bundleUri": {
+     "type": "string",
+     "description": "Description of a bundle that this product can be part of. Mandatory if _additionalBundleUris_ includes one or more supporting documents.",
+     "x-cds-type": "URIString"
+    },
+    "additionalOverviewUris": {
+     "type": "array",
+     "description": "An array of additional general overviews for the product or features of the product, if applicable. To be treated as secondary documents to the _overviewUri_. O",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductAdditionalInformationV2_additionalInformationUris"
+     }
+    },
+    "additionalTermsUris": {
+     "type": "array",
+     "description": "An array of additional terms and conditions for the product, if applicable. To be treated as secondary documents to the _termsUri_. Only to be used if there is ",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductAdditionalInformationV2_additionalInformationUris"
+     }
+    },
+    "additionalEligibilityUris": {
+     "type": "array",
+     "description": "An array of additional eligibility rules and criteria for the product, if applicable. To be treated as secondary documents to the _eligibilityUri_. Only to be u",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductAdditionalInformationV2_additionalInformationUris"
+     }
+    },
+    "additionalFeesAndPricingUris": {
+     "type": "array",
+     "description": "An array of additional fees, pricing, discounts, exemptions and bonuses for the product, if applicable. To be treated as secondary documents to the _feesAndPric",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductAdditionalInformationV2_additionalInformationUris"
+     }
+    },
+    "additionalBundleUris": {
+     "type": "array",
+     "description": "An array of additional bundles for the product, if applicable. To be treated as secondary documents to the _bundleUri_. Only to be used if there is a primary _b",
+     "items": {
+      "$ref": "#/components/schemas/BankingProductAdditionalInformationV2_additionalInformationUris"
+     }
+    }
+   },
+   "description": "Object that contains links to additional information on specific topics.",
+   "x-conditional": [
+    "overviewUri",
+    "termsUri",
+    "eligibilityUri",
+    "feesAndPricingUri",
+    "bundleUri"
+   ]
+  },
+  "BankingProductAdditionalInformationV2_additionalInformationUris": {
+   "required": [
+    "additionalInfoUri"
+   ],
+   "type": "object",
+   "properties": {
+    "description": {
+     "type": "string",
+     "description": "Display text providing more information about the document URI."
+    },
+    "additionalInfoUri": {
+     "type": "string",
+     "description": "The URI describing the additional information.",
+     "x-cds-type": "URIString"
+    }
+   }
+  },
+  "BankingProductCategoryV2": {
+   "type": "string",
+   "description": "The category to which a product or account belongs. See [here](#product-categories) for more details.",
+   "enum": [
+    "BUSINESS_LOANS",
+    "BUY_NOW_PAY_LATER",
+    "CRED_AND_CHRG_CARDS",
+    "LEASES",
+    "MARGIN_LOANS",
+    "OVERDRAFTS",
+    "PERS_LOANS",
+    "REGULATED_TRUST_ACCOUNTS",
+    "RESIDENTIAL_MORTGAGES",
+    "TERM_DEPOSITS",
+    "TRADE_FINANCE",
+    "TRANS_AND_SAVINGS_ACCOUNTS",
+    "TRAVEL_CARDS"
+   ]
+  }
+ }
+}

@@ -1,0 +1,8 @@
+{ "source": "Mock retailers for local testing (fictional)", "retailers": [
+  { "name": "Sparky Energy (sample)", "brand": "sparky", "baseUri": "https://cdr.energymadeeasy.gov.au/sparky" },
+  { "name": "Gumtree Power (sample)", "brand": "gumtree", "baseUri": "https://cdr.energymadeeasy.gov.au/gumtree" },
+  { "name": "Harbour Gas & Power (sample)", "brand": "hgp", "baseUri": "https://cdr.energymadeeasy.gov.au/hgp" },
+  { "name": "Locals A (sample)", "brand": "locals-a", "baseUri": "https://cdr.energymadeeasy.gov.au/locals" },
+  { "name": "Locals B (sample)", "brand": "locals-b", "baseUri": "https://cdr.energymadeeasy.gov.au/locals" },
+  { "name": "Gone Energy (sample)", "brand": "gone", "baseUri": "https://cdr.energymadeeasy.gov.au/gone" }
+] }

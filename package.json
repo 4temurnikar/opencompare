@@ -1,0 +1,23 @@
+{
+  "name": "opencompare",
+  "version": "1.0.0",
+  "description": "Independent comparisons of Australian energy plans and banking products using public Consumer Data Right data, refreshed daily.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "refresh": "node pipeline/build.mjs && node pipeline/energy/build.mjs",
+    "mock": "node scripts/mock-server.mjs",
+    "refresh:mock": "CDR_REGISTER_URL=http://localhost:8787/cdr-register/v1/banking/data-holders/brands/summary node pipeline/build.mjs",
+    "serve": "node scripts/serve-site.mjs",
+    "refresh:banking": "node pipeline/build.mjs",
+    "refresh:energy": "node pipeline/energy/build.mjs",
+    "mock:energy": "node scripts/mock-energy.mjs",
+    "refresh:energy:mock": "CDR_ENERGY_BASE=http://localhost:8788/eme CDR_ENERGY_RETAILERS=scripts/mock-energy-retailers.json node pipeline/energy/build.mjs"
+  },
+  "dependencies": {
+    "pdfjs-dist": "4.10.38"
+  }
+}
