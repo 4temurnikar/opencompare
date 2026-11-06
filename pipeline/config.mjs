@@ -85,6 +85,14 @@ export const config = {
     // Plans per retailer whose fact sheets are checked each day (rotates so all are covered over time)
     webPlansPerRetailer: Number(process.env.CDR_ENERGY_WEB_PLANS || 12),
     webBudgetMs: Number(process.env.CDR_ENERGY_WEB_BUDGET_MIN || 25) * 60e3,
+    // Retailer websites (searched for plan fact sheets); brands not listed are looked up automatically
+    websitesFile: process.env.CDR_ENERGY_WEBSITES || new URL('./energy/websites.json', import.meta.url).pathname,
+    // Per retailer per day: pages and new PDFs read while searching, and plans checked against their fact sheet
+    factSheets: {
+      pages: Number(process.env.CDR_ENERGY_FS_PAGES || 25),
+      pdfs: Number(process.env.CDR_ENERGY_FS_PDFS || 30),
+      sample: Number(process.env.CDR_ENERGY_FS_SAMPLE || 15),
+    },
     outDir: process.env.CDR_ENERGY_OUT_DIR || new URL('../site/data/energy/', import.meta.url).pathname,
   },
 

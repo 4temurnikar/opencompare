@@ -74,6 +74,9 @@ const META = {
   DETAIL_DEFERRED: ['availability', 'info'],
   WEB_PRICE_NOT_FOUND: ['website', 'warning'],
   WEB_SUPPLY_NOT_FOUND: ['website', 'warning'],
+  E_NO_PLAN_LINKS: ['links', 'info'],
+  WEB_SITE_UNKNOWN: ['website', 'info'],
+  WEB_NO_FACT_SHEETS: ['website', 'info'],
 };
 
 const LABELS = { ...ISSUE_LABELS, ...STANDARDS_LABELS, ...WEB_LABELS, ...ENERGY_LABELS, DETAIL_DEFERRED: 'Plan detail not fetched today (daily limit); previous details used where available' };

@@ -52,23 +52,33 @@ export const isProductPageField = (f) => PRODUCT_PAGE_FIELDS.has(f);
 
 // ---------- robots.txt
 const robotsCache = new Map();
+const sitemapCache = new Map();
 async function robotsFor(origin) {
   if (robotsCache.has(origin)) return robotsCache.get(origin);
   const p = (async () => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
     try {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 8000);
       const res = await fetch(`${origin}/robots.txt`, { headers: { 'user-agent': W.userAgent }, signal: ctrl.signal });
-      clearTimeout(t);
       if (!res.ok) return () => true;
-      return parseRobots(await res.text());
+      const txt = await res.text();
+      sitemapCache.set(origin, [...txt.matchAll(/^\s*sitemap\s*:\s*(\S+)/gim)].map((m) => m[1]));
+      return parseRobots(txt);
     } catch {
       return () => true;
+    } finally {
+      clearTimeout(t);
     }
   })();
   robotsCache.set(origin, p);
   return p;
 }
+/** Sitemap URLs a site declares in robots.txt (empty when none). */
+export async function sitemapsFor(origin) {
+  await robotsFor(origin);
+  return sitemapCache.get(origin) || [];
+}
+
 export function parseRobots(txt) {
   const groups = [];
   let cur = null;
@@ -261,7 +271,11 @@ async function readBody(res, cap) {
   return Buffer.concat(chunks);
 }
 
-export async function fetchDoc(url, deadline, names = []) {
+/**
+ * Fetch one page or PDF and extract what the checks need.
+ * opts.keepText keeps the extracted text (capped); opts.raw keeps XML/plain-text bodies (sitemaps).
+ */
+export async function fetchDoc(url, deadline, names = [], opts = {}) {
   const r = { url, finalUrl: null, status: null, kind: null, ok: false, blocked: false, robots: false, skipped: false, error: null, textLen: 0, title: '', pct: [], amt: [], links: [], rendered: false, notHttps: false, homepage: false };
   let u;
   try {
@@ -328,6 +342,14 @@ export async function fetchDoc(url, deadline, names = []) {
           r.amt = amounts(text);
           r.cents = cents(text);
           Object.assign(r, sectionsByName(text, names));
+          if (opts.keepText) r.text = text.slice(0, 2e6);
+          r.ok = true;
+          return r;
+        }
+        if (opts.raw && (type.includes('xml') || type.includes('text/plain') || /\.xml($|\?)/i.test(r.finalUrl))) {
+          r.kind = 'xml';
+          r.raw = (await readBody(res, 3e7)).toString('utf8');
+          r.textLen = r.raw.length;
           r.ok = true;
           return r;
         }
@@ -354,7 +376,8 @@ export async function fetchDoc(url, deadline, names = []) {
           r.amt = amounts(text);
           r.cents = cents(text);
           Object.assign(r, sectionsByName(text, names));
-          r.links = htmlLinks(html, r.finalUrl).slice(0, 400);
+          r.links = htmlLinks(html, r.finalUrl).slice(0, opts.maxLinks || 400);
+          if (opts.keepText) r.text = text.slice(0, 2e6);
           r.ok = true;
           return r;
         }
@@ -376,7 +399,7 @@ export async function fetchDoc(url, deadline, names = []) {
 // ---------- one bank
 const DOC_LINK = /rate|fee|pricing|charges|schedule|terms|conditions|\bpds\b|disclosure|key[\s-]?fact|\btmd\b|target market|interest/i;
 const MULTI_SUFFIX = /\.(com|net|org|gov|edu|asn|id)\.au$/;
-const site = (host) => {
+export const site = (host) => {
   const parts = host.replace(/^www\./, '').split('.');
   return parts.slice(MULTI_SUFFIX.test(host) ? -3 : -2).join('.');
 };
