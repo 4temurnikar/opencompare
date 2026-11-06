@@ -13,7 +13,7 @@ export const CATEGORIES = [
 
 const WEB_LABELS = {
   LINK_BROKEN: 'Link is broken (error page or unreachable)',
-  LINK_HOMEPAGE: 'Product link goes to the homepage, not the product',
+  LINK_HOMEPAGE: 'Link goes to the homepage, not the specific product or plan',
   LINK_NOT_HTTPS: 'Link uses http rather than https',
   LINK_BLOCKED: 'Page blocked our automated check (bot protection)',
   LINK_ROBOTS: 'Page excluded from automated checks by robots.txt',
@@ -21,7 +21,7 @@ const WEB_LABELS = {
   WEB_RATE_NOT_FOUND: 'CDR rate not found on the bank’s linked pages or PDFs',
   WEB_COMP_NOT_FOUND: 'CDR comparison rate not found on the bank’s linked pages or PDFs',
   WEB_FEE_NOT_FOUND: 'CDR fee amount not found on the bank’s linked pages or PDFs',
-  WEB_UNVERIFIABLE: 'No readable page or PDF to check this product against',
+  WEB_UNVERIFIABLE: 'No readable page or PDF to check it against',
 };
 
 const META = {
