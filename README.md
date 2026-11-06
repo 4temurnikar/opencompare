@@ -168,7 +168,20 @@ Useful environment variables: `CDR_BANKING` (`private` / `public` / `off`), `CDR
 | Links | Broken links, product links that land on the homepage, http instead of https; blocked and robots-excluded pages are reported as "not checked", not as faults |
 | Matches the bank's website | Each CDR rate, comparison rate and fee looked for on the product's own pages and PDFs. Shared rate schedules are read only in the section about that product, so one product's figure can't confirm another's. |
 
-**Severity:** *error* breaks the standard or can't be used; *warning* is probably wrong or missing; *note* is informational.
+**Counting:** a *finding* is one kind of problem in one field for one provider. A problem repeated across 1,000 plans is one finding affecting 1,000 plans, not 1,000 problems.
+
+**Severity (1 to 5), set in `pipeline/dq.mjs`:**
+
+| Level | Meaning | Examples |
+|---|---|---|
+| 1 Critical | Wrong in a way that would mislead someone about the price | Cents published as dollars, solar feed-in of dollars per kWh, banking rate published as a percentage |
+| 2 Major | Materially affects comparisons or can't be used | Price doesn't match the plan's fact sheet (matched by plan ID), no usable tariff, plan can't be located, expired plan listed, broken link, feed down, mandatory *price* field missing |
+| 3 Moderate | Breaks the standard in a way that can trip up software | Wrong enum, type, rate or amount format; conditional rule broken; doubtful price; no supply charge |
+| 4 Minor | Breaks the standard but the meaning is clear | `"day"` instead of `"P1D"`, date format, homepage link, http link; banking "rate not found on the bank's pages" (looser matching) |
+| 5 Cosmetic | Mandatory descriptive text missing | `displayName`, eligibility `information`, `description` |
+| Note | Not a fault | Optional fields not provided (links), blocked or robots-excluded pages, couldn't check, older API version, deferred detail |
+
+Breaking the data standard isn't the same as breaching the law, and energy plan data is published under the CDR by the AER (and Victoria's energy department) from retailers' submissions, so a problem shared by many retailers may come from how the data is published.
 
 **Reading "not found" correctly:** it means the exact figure didn't appear on the pages and PDFs linked from that product. Rates loaded by JavaScript the reader couldn't run, images of tables, or different rounding can cause it. Treat it as a prompt to check, not proof of an error.
 
