@@ -40,29 +40,29 @@ function plans() {
   const s = SHIFT ? 0.02 : 0;
   return {
     sparky: [
-      { planId: 'SPK-NSW-1', displayName: 'Sparky Saver', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(1.05, 0.29 + s)], { solarFeedInTariff: fit(5), discounts: [{ displayName: 'Pay on time', type: 'CONDITIONAL', category: 'PAY_ON_TIME', methodUType: 'percentOfUse', percentOfUse: { rate: '0.05' } }] }) },
-      { planId: 'SPK-NSW-TOU', displayName: 'Sparky Smart Time', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([tou(1.1, 0.48, 0.30, 0.19)], { pricingModel: 'TIME_OF_USE', timeZone: 'LOCAL', meterTypes: ['SMART'], solarFeedInTariff: fit(4) }) },
-      { planId: 'SPK-NSW-STD', displayName: 'Sparky Standing Offer', type: 'STANDING', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(1.25, 0.36)]) },
-      { planId: 'SPK-VIC-1', displayName: 'Sparky Saver Vic', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: VIC, electricityContract: contract([single(1.0, 0.27)], { solarFeedInTariff: fit(4.9) }) },
-      { planId: 'SPK-QLD-1', displayName: 'Sparky Saver Qld', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: QLD, electricityContract: contract([single(1.15, 0.26)], { solarFeedInTariff: fit(8) }) },
-      { planId: 'SPK-NSW-GAS', displayName: 'Sparky Gas', type: 'MARKET', fuelType: 'GAS', customerType: 'RESIDENTIAL', geography: NSWG, gasContract: contract([{ displayName: 'All year', startDate: '01-01', endDate: '12-31', dailySupplyChargeType: 'SINGLE', dailySupplyCharge: $(0.75), rateBlockUType: 'singleRate', singleRate: { displayName: 'Usage', period: 'P1D', rates: [{ unitPrice: $(0.042), volume: 50 }, { unitPrice: $(0.031) }] } }]) },
+      { planId: 'SPK1000001MRE1', displayName: 'Sparky Saver', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(1.05, 0.29 + s)], { solarFeedInTariff: fit(5), discounts: [{ displayName: 'Pay on time', type: 'CONDITIONAL', category: 'PAY_ON_TIME', methodUType: 'percentOfUse', percentOfUse: { rate: '0.05' } }] }) },
+      { planId: 'SPK1000002MRE1', displayName: 'Sparky Smart Time', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([tou(1.1, 0.48, 0.30, 0.19)], { pricingModel: 'TIME_OF_USE', timeZone: 'LOCAL', meterTypes: ['SMART'], solarFeedInTariff: fit(4) }) },
+      { planId: 'SPK1000003SRE1', displayName: 'Sparky Standing Offer', type: 'STANDING', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(1.25, 0.36)]) },
+      { planId: 'SPK1000004MR', displayName: 'Sparky Saver Vic', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: VIC, electricityContract: contract([single(1.0, 0.27)], { solarFeedInTariff: fit(4.9) }) },
+      { planId: 'SPK1000005MRE1', displayName: 'Sparky Saver Qld', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: QLD, electricityContract: contract([single(1.15, 0.26)], { solarFeedInTariff: fit(8) }) },
+      { planId: 'SPK1000006MRG1', displayName: 'Sparky Gas', type: 'MARKET', fuelType: 'GAS', customerType: 'RESIDENTIAL', geography: NSWG, gasContract: contract([{ displayName: 'All year', startDate: '01-01', endDate: '12-31', dailySupplyChargeType: 'SINGLE', dailySupplyCharge: $(0.75), rateBlockUType: 'singleRate', singleRate: { displayName: 'Usage', period: 'P1D', rates: [{ unitPrice: $(0.042), volume: 50 }, { unitPrice: $(0.031) }] } }]) },
     ],
     gumtree: [
-      { planId: 'GUM-NSW-1', displayName: 'Gumtree Simple', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(0.98, 0.275)], { isFixed: true, termType: '1_YEAR', variation: undefined, solarFeedInTariff: fit(6) }) },
-      { planId: 'GUM-NSW-SENIOR', displayName: 'Gumtree Seniors', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(0.8, 0.22)], { eligibility: [{ type: 'SENIOR_CARD', information: 'Seniors card holders only' }] }) },
-      { planId: 'GUM-NSW-CL', displayName: 'Gumtree Hot Water', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(1.02, 0.285)], { pricingModel: 'SINGLE_RATE_CONT_LOAD', controlledLoad: [{ displayName: 'Controlled load 1', rateBlockUType: 'singleRate', singleRate: { displayName: 'CL1', rates: [{ unitPrice: $(0.15) }], dailySupplyCharge: $(0.05) } }] }) },
-      { planId: 'GUM-NSW-DEM', displayName: 'Gumtree Demand', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(1.0, 0.21), { displayName: 'Demand', type: 'NETWORK', startDate: '01-01', endDate: '12-31', rateBlockUType: 'demandCharges', demandCharges: [{ displayName: 'Peak demand', amount: '0.30', startTime: '16:00', endTime: '20:00', measurementPeriod: 'MONTH', chargePeriod: 'MONTH' }] }]) },
+      { planId: 'GUM2000001MRE2', displayName: 'Gumtree Simple', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(0.98, 0.275)], { isFixed: true, termType: '1_YEAR', variation: undefined, solarFeedInTariff: fit(6) }) },
+      { planId: 'GUM2000002MRE2', displayName: 'Gumtree Seniors', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(0.8, 0.22)], { eligibility: [{ type: 'SENIOR_CARD', information: 'Seniors card holders only' }] }) },
+      { planId: 'GUM2000003MRE2', displayName: 'Gumtree Hot Water', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(1.02, 0.285)], { pricingModel: 'SINGLE_RATE_CONT_LOAD', controlledLoad: [{ displayName: 'Controlled load 1', rateBlockUType: 'singleRate', singleRate: { displayName: 'CL1', rates: [{ unitPrice: $(0.15) }], dailySupplyCharge: $(0.05) } }] }) },
+      { planId: 'GUM2000004MRE2', displayName: 'Gumtree Demand', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(1.0, 0.21), { displayName: 'Demand', type: 'NETWORK', startDate: '01-01', endDate: '12-31', rateBlockUType: 'demandCharges', demandCharges: [{ displayName: 'Peak demand', amount: '0.30', startTime: '16:00', endTime: '20:00', measurementPeriod: 'MONTH', chargePeriod: 'MONTH' }] }]) },
       // Deliberate problems: price in cents, missing cooling-off days, conditional discount without category, variable without variation text
-      { planId: 'GUM-NSW-BAD', displayName: 'Gumtree Flex', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(1.0, 28.5)], { coolingOffDays: undefined, variation: undefined, discounts: [{ displayName: 'Direct debit', type: 'CONDITIONAL', methodUType: 'percentOfBill', percentOfBill: { rate: '0.03' } }] }) },
-      { planId: 'GUM-BIZ', displayName: 'Gumtree Business', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'BUSINESS', geography: NSW, electricityContract: contract([single(1.3, 0.25)]) },
+      { planId: 'GUM2000005MRE2', displayName: 'Gumtree Flex', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: NSW, electricityContract: contract([single(1.0, 28.5)], { coolingOffDays: undefined, variation: undefined, discounts: [{ displayName: 'Direct debit', type: 'CONDITIONAL', methodUType: 'percentOfBill', percentOfBill: { rate: '0.03' } }] }) },
+      { planId: 'GUM2000006MBE2', displayName: 'Gumtree Business', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'BUSINESS', geography: NSW, electricityContract: contract([single(1.3, 0.25)]) },
     ],
     hgp: [
-      { planId: 'HGP-VIC-1', displayName: 'Harbour Home', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: VIC, electricityContract: contract([single(1.05, 0.255)], { discounts: [{ displayName: 'Always on', type: 'GUARANTEED', category: 'GUARANTEED_DISCOUNT', methodUType: 'percentOfUse', percentOfUse: { rate: '0.03' } }] }) },
-      { planId: 'HGP-VIC-STD', displayName: 'Harbour Standing', type: 'STANDING', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: VIC, electricityContract: contract([single(1.2, 0.33)]) },
-      { planId: 'HGP-VIC-GAS', displayName: 'Harbour Gas', type: 'MARKET', fuelType: 'GAS', customerType: 'RESIDENTIAL', geography: VICG, gasContract: contract([{ displayName: 'All year', startDate: '01-01', endDate: '12-31', dailySupplyChargeType: 'SINGLE', dailySupplyCharge: $(0.85), rateBlockUType: 'singleRate', singleRate: { displayName: 'Usage', rates: [{ unitPrice: $(0.034) }] } }]) },
+      { planId: 'HGP3000001MR', displayName: 'Harbour Home', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: VIC, electricityContract: contract([single(1.05, 0.255)], { discounts: [{ displayName: 'Always on', type: 'GUARANTEED', category: 'GUARANTEED_DISCOUNT', methodUType: 'percentOfUse', percentOfUse: { rate: '0.03' } }] }) },
+      { planId: 'HGP3000002SR', displayName: 'Harbour Standing', type: 'STANDING', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: VIC, electricityContract: contract([single(1.2, 0.33)]) },
+      { planId: 'HGP3000003MRG1', displayName: 'Harbour Gas', type: 'MARKET', fuelType: 'GAS', customerType: 'RESIDENTIAL', geography: VICG, gasContract: contract([{ displayName: 'All year', startDate: '01-01', endDate: '12-31', dailySupplyChargeType: 'SINGLE', dailySupplyCharge: $(0.85), rateBlockUType: 'singleRate', singleRate: { displayName: 'Usage', rates: [{ unitPrice: $(0.034) }] } }]) },
     ],
-    'locals-a': [{ planId: 'LOC-A-1', displayName: 'Locals Community', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: VIC, electricityContract: contract([single(1.08, 0.262)]) }],
-    'locals-b': [{ planId: 'LOC-B-1', displayName: 'Locals Club', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: QLD, electricityContract: contract([single(1.12, 0.268)]) }],
+    'locals-a': [{ planId: 'LCA4000001MR', displayName: 'Locals Community', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: VIC, electricityContract: contract([single(1.08, 0.262)]) }],
+    'locals-b': [{ planId: 'LCB5000001MRE1', displayName: 'Locals Club', type: 'MARKET', fuelType: 'ELECTRICITY', customerType: 'RESIDENTIAL', geography: QLD, electricityContract: contract([single(1.12, 0.268)]) }],
   };
 }
 const FEEDS = { sparky: ['sparky'], gumtree: ['gumtree'], hgp: ['hgp'], locals: ['locals-a', 'locals-b'] };
@@ -72,19 +72,20 @@ function withMeta(p, brand) {
   const sheet = `${base}/sheets/${brand}/${p.planId}.pdf`;
   return {
     effectiveFrom: '2026-07-01T00:00:00Z',
-    lastUpdated: SHIFT && p.planId === 'SPK-NSW-1' ? '2026-11-05T00:00:00Z' : '2026-10-01T00:00:00Z',
+    lastUpdated: SHIFT && p.planId === 'SPK1000001MRE1' ? '2026-11-05T00:00:00Z' : '2026-10-01T00:00:00Z',
     description: `${p.displayName} from ${NAMES[brand]}`,
     brand,
     brandName: NAMES[brand],
     applicationUri: `${base}/apply/${p.planId}`,
-    additionalInformation: { overviewUri: p.planId === 'HGP-VIC-1' ? `${base}/missing/${p.planId}` : `${base}/plans/${brand}/${p.planId}`, pricingUri: p.planId === 'LOC-B-1' ? `${base}/blocked/${p.planId}.pdf` : sheet },
+    // Like most real plans, Sparky and Harbour publish no links: their fact sheets are found on their websites
+    ...(['sparky', 'hgp'].includes(brand) ? {} : { additionalInformation: { overviewUri: p.planId === 'GUM2000002MRE2' ? `${base}/missing/${p.planId}` : `${base}/plans/${brand}/${p.planId}`, pricingUri: p.planId === 'LCB5000001MRE1' ? `${base}/blocked/${p.planId}.pdf` : sheet } }),
     ...p,
   };
 }
 
 // ---- fact sheets: prices in cents including GST; one deliberately differs from the CDR data
 function factLines(p) {
-  const out = [`${p.displayName} - Basic Plan Information Document`];
+  const out = [`${p.displayName} - Basic Plan Information Document`, `Plan ID: ${p.planId}`];
   for (const [fuel, c] of [['Electricity', p.electricityContract], ['Gas', p.gasContract]]) {
     if (!c) continue;
     for (const t of c.tariffPeriod) {
@@ -92,7 +93,7 @@ function factLines(p) {
       const rates = t.singleRate ? t.singleRate.rates.map((r) => ['Usage', r]) : (t.timeOfUseRates || []).map((r) => [r.displayName, r.rates[0]]);
       for (const [name, r] of rates) {
         let c100 = Number(r.unitPrice) * 110;
-        if (p.planId === 'SPK-VIC-1') c100 += 1.5; // fact sheet disagrees with the CDR data
+        if (p.planId === 'SPK1000004MR') c100 += 1.5; // fact sheet disagrees with the CDR data
         out.push(`${fuel} ${name}: ${c100.toFixed(2)} c/${fuel === 'Gas' ? 'MJ' : 'kWh'} incl. GST`);
       }
     }
@@ -150,3 +151,55 @@ http
     send(res, 200, { data: { plans: summary }, links: { self: u.href }, meta: { totalRecords: summary.length, totalPages: 1 } }, { 'x-v': '1' });
   })
   .listen(PORT, () => console.log(`Mock energy APIs on ${base}/eme (shift=${SHIFT})`));
+
+// ---- retailer websites (fact sheets are found here, not through CDR links)
+const sheetFor = (id) => {
+  for (const [b, list] of Object.entries(plans())) {
+    const p = list.find((x) => x.planId === id);
+    if (p) return p;
+  }
+  return null;
+};
+const pdfOf = (ids) => makePdf(ids.flatMap((id) => factLines(sheetFor(id))));
+function website(port, routes) {
+  http
+    .createServer((req, res) => {
+      const u = new URL(req.url, `http://localhost:${port}`);
+      const r = routes[u.pathname];
+      if (!r) return res.writeHead(404, { 'content-type': 'text/html' }), res.end('<h1>Not found</h1>');
+      const [type, body] = typeof r === 'function' ? r() : r;
+      res.writeHead(200, { 'content-type': type }), res.end(body);
+    })
+    .listen(port);
+}
+const W = (n) => `http://localhost:${PORT + n}`;
+const html = (t, b) => ['text/html', page(t, b)];
+const xml = (b) => ['application/xml', `<?xml version="1.0"?>${b}`];
+const urlset = (urls) => xml(`<urlset>${urls.map((x) => `<url><loc>${x}</loc></url>`).join('')}</urlset>`);
+// Sparky: sitemap index -> pages and documents; one PDF per plan named by plan ID, a shared price list, an HTML price page
+website(PORT + 10, {
+  '/robots.txt': ['text/plain', `User-agent: *\nAllow: /\nSitemap: ${W(10)}/sitemap_index.xml\n`],
+  '/sitemap_index.xml': xml(`<sitemapindex><sitemap><loc>${W(10)}/sitemap-pages.xml</loc></sitemap><sitemap><loc>${W(10)}/sitemap-documents.xml</loc></sitemap></sitemapindex>`),
+  '/sitemap-pages.xml': urlset([`${W(10)}/`, `${W(10)}/energy-fact-sheets`, `${W(10)}/about-us`]),
+  '/sitemap-documents.xml': urlset([`${W(10)}/documents/SPK1000001MRE1-bpid.pdf`, `${W(10)}/documents/sparky-price-list.pdf`]),
+  '/': html('Sparky Energy', `<a href="/energy-fact-sheets">Energy fact sheets</a> <a href="/about-us">About us</a>`),
+  '/about-us': html('About Sparky', '<p>About us.</p>'),
+  '/energy-fact-sheets': html('Energy fact sheets', `<ul><li><a href="/documents/gas-fact-sheet.pdf">Sparky Gas fact sheet</a></li><li><a href="/plans/standing-offer">Standing offer prices</a></li></ul>`),
+  '/plans/standing-offer': () => {
+    const p = sheetFor('SPK1000003SRE1');
+    return html('Standing offer', factLines(p).map((l) => `<p>${l}</p>`).join(''));
+  },
+  '/documents/SPK1000001MRE1-bpid.pdf': () => ['application/pdf', pdfOf(['SPK1000001MRE1'])],
+  '/documents/sparky-price-list.pdf': () => ['application/pdf', pdfOf(['SPK1000002MRE1', 'SPK1000004MR', 'SPK1000005MRE1'])],
+  '/documents/gas-fact-sheet.pdf': () => ['application/pdf', pdfOf(['SPK1000006MRG1'])],
+});
+// Harbour: no sitemap; homepage -> pricing page -> fact sheet PDFs (gas plan has none)
+website(PORT + 11, {
+  '/robots.txt': ['text/plain', 'User-agent: *\nAllow: /\n'],
+  '/': html('Harbour Gas & Power', '<a href="/pricing">Pricing</a>'),
+  '/pricing': html('Pricing', '<a href="/fs/harbour-home.pdf">Energy fact sheet: Harbour Home</a> <a href="/fs/harbour-standing.pdf">Energy fact sheet: Harbour Standing</a>'),
+  '/fs/harbour-home.pdf': () => ['application/pdf', pdfOf(['HGP3000001MR'])],
+  '/fs/harbour-standing.pdf': () => ['application/pdf', pdfOf(['HGP3000002SR'])],
+});
+// Gumtree: a website with no fact sheets on it
+website(PORT + 12, { '/robots.txt': ['text/plain', 'User-agent: *\nAllow: /\n'], '/': html('Gumtree Power', '<p>Call us to switch.</p>') });

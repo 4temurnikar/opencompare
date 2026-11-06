@@ -1,8 +1,41 @@
-{ "source": "Mock retailers for local testing (fictional)", "retailers": [
-  { "name": "Sparky Energy (sample)", "brand": "sparky", "baseUri": "https://cdr.energymadeeasy.gov.au/sparky" },
-  { "name": "Gumtree Power (sample)", "brand": "gumtree", "baseUri": "https://cdr.energymadeeasy.gov.au/gumtree" },
-  { "name": "Harbour Gas & Power (sample)", "brand": "hgp", "baseUri": "https://cdr.energymadeeasy.gov.au/hgp" },
-  { "name": "Locals A (sample)", "brand": "locals-a", "baseUri": "https://cdr.energymadeeasy.gov.au/locals" },
-  { "name": "Locals B (sample)", "brand": "locals-b", "baseUri": "https://cdr.energymadeeasy.gov.au/locals" },
-  { "name": "Gone Energy (sample)", "brand": "gone", "baseUri": "https://cdr.energymadeeasy.gov.au/gone" }
-] }
+{
+ "source": "Mock retailers for local testing (fictional)",
+ "retailers": [
+  {
+   "name": "Sparky Energy (sample)",
+   "brand": "sparky",
+   "baseUri": "https://cdr.energymadeeasy.gov.au/sparky",
+   "website": "http://localhost:8798"
+  },
+  {
+   "name": "Gumtree Power (sample)",
+   "brand": "gumtree",
+   "baseUri": "https://cdr.energymadeeasy.gov.au/gumtree",
+   "website": "http://localhost:8800"
+  },
+  {
+   "name": "Harbour Gas & Power (sample)",
+   "brand": "hgp",
+   "baseUri": "https://cdr.energymadeeasy.gov.au/hgp",
+   "website": "http://localhost:8799"
+  },
+  {
+   "name": "Locals A (sample)",
+   "brand": "locals-a",
+   "baseUri": "https://cdr.energymadeeasy.gov.au/locals",
+   "website": null
+  },
+  {
+   "name": "Locals B (sample)",
+   "brand": "locals-b",
+   "baseUri": "https://cdr.energymadeeasy.gov.au/locals",
+   "website": null
+  },
+  {
+   "name": "Gone Energy (sample)",
+   "brand": "gone",
+   "baseUri": "https://cdr.energymadeeasy.gov.au/gone",
+   "website": null
+  }
+ ]
+}
