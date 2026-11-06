@@ -33,6 +33,17 @@ export function setupEnergy(ctx) {
   const tags = (p, c) =>
     [p.t !== 'MARKET' ? '<span class="tag">Standing offer</span>' : '', c?.fx ? '<span class="tag good">Fixed price</span>' : '', c?.tp?.some((t) => t.kind === 'tou') ? '<span class="tag">Time of use</span>' : '', c?.tp?.some((t) => t.kind === 'demand') ? '<span class="tag warn">Demand charges</span>' : '', ...(c?.elig || []).filter((e) => RESTRICTED[e.type]).map((e) => `<span class="tag warn">${esc(RESTRICTED[e.type])}</span>`), p.bad ? '<span class="tag warn" title="This plan has data errors, such as prices published in cents. Check the fact sheet.">Check details</span>' : ''].join('');
 
+  // WA and the NT aren't in the National Electricity Market, so their plans aren't published under the CDR
+  const ext = (href, text) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
+  function notCovered(state, fuel) {
+    const where = state === 'WA' ? 'Western Australia' : 'the Northern Territory';
+    const head = `<p><b>${fuel === 'G' ? 'Gas' : 'Electricity'} plans in ${where} aren't published under the Consumer Data Right,</b> so we can't compare them here. The Consumer Data Right for energy covers the states and territory connected to the National Electricity Market: NSW, the ACT, Victoria, Queensland, South Australia and Tasmania.</p>`;
+    if (fuel === 'G') return `${head}<p>Check gas retailers' websites directly for their current prices.</p>`;
+    return state === 'WA'
+      ? `${head}<p>Households are supplied by ${ext('https://www.synergy.net.au', 'Synergy')} (Perth and the South West) or ${ext('https://www.horizonpower.com.au', 'Horizon Power')} (regional WA), at prices set by the WA Government.</p>`
+      : `${head}<p>Most households are supplied by ${ext('https://www.jacanaenergy.com.au', 'Jacana Energy')}, at prices set by the NT Government.</p>`;
+  }
+
   // ---------- HOME
   let homeFuel = 'E';
   let homeBoard = null;
@@ -107,6 +118,7 @@ export function setupEnergy(ctx) {
           <details><summary>Where does the data come from?</summary><p>From the generic plan data every retailer publishes under the Consumer Data Right, served by the Australian Energy Regulator's Energy Made Easy service. We don't use paid feeds or commissions.</p></details>
           <details><summary>How are the costs worked out?</summary><p>For your usage we add up daily supply charges, usage rates (including stepped and time-of-use rates, using a typical household pattern), ongoing fees and guaranteed discounts, then add GST and subtract any solar feed-in credit. Conditional discounts, like paying on time, are only included if you tick the box.</p></details>
           <details><summary>Why might my bill be different?</summary><p>Your real usage pattern, meter type, concessions and the retailer's terms all affect the bill. Use the estimate to shortlist, then check the plan's fact sheet (Basic Plan Information Document) before switching.</p></details>
+          <details><summary>Which states are covered?</summary><p>New South Wales, the ACT, Victoria, Queensland, South Australia and Tasmania: the places connected to the National Electricity Market, where retailers' plans are published under the Consumer Data Right. Western Australia and the Northern Territory have their own power systems and aren't covered; most households there are supplied by government-owned retailers at prices set by their governments.</p></details>
           <details><summary>How often is it updated?</summary><p>Every morning. The time of the latest update is shown at the top of every page.</p></details>
           <details><summary>Should I switch based on this?</summary><p>Use it to shortlist. It's general information based on each retailer's published prices and the usage you enter, not a recommendation for your circumstances. Before switching, read the plan's fact sheet and compare it with your current bill, which also tells you whether your retailer has a better offer for you.</p></details>
         </div>
@@ -206,8 +218,13 @@ export function setupEnergy(ctx) {
       return;
     }
     const state = postcodeState(pc);
+    if (state === 'WA' || state === 'NT') {
+      $('#ef-net').style.display = 'none';
+      box.innerHTML = `<div class="table-wrap"><div class="empty notcovered">${notCovered(state, fuel)}</div></div>`;
+      return;
+    }
     if (!state || !EN.meta.states?.[state]) {
-      box.innerHTML = `<div class="table-wrap"><div class="empty">No published plans found for postcode ${esc(pc)}${state ? ` (${esc(STATE_NAME[state])})` : ''}.${state === 'WA' || state === 'NT' ? ' Energy retail in WA and the NT is mostly not covered by the national data.' : ''}</div></div>`;
+      box.innerHTML = `<div class="table-wrap"><div class="empty">No published plans found for postcode ${esc(pc)}${state ? ` (${esc(STATE_NAME[state])})` : ''}.</div></div>`;
       return;
     }
     box.innerHTML = '<div class="table-wrap"><div class="empty">Loading plans…</div></div>';

@@ -960,6 +960,7 @@ renderers.about = () => {
       <li>Conditional discounts (pay on time, direct debit) are only included if you tick the box. Demand charges aren't estimated; demand plans are hidden unless you ask for them.</li>
       <li>Rankings use ${(em.defaults?.E?.usage || 4000).toLocaleString('en-AU')} kWh of electricity or ${(em.defaults?.G?.usage || 20000).toLocaleString('en-AU')} MJ of gas a year, residential market plans, on the network with the most plans in each state. Plans limited to particular groups (such as seniors or club members) and plans with data errors are left out of rankings.</li>
       <li>Gas rates without a stated unit are treated as per MJ.</li>
+      <li>Coverage: NSW, the ACT, Victoria, Queensland, South Australia and Tasmania. Western Australia and the Northern Territory aren't in the National Electricity Market, so their plans aren't published under the Consumer Data Right.</li>
       <li>Fact sheets: most plans don't link to their fact sheet in the CDR data, so we search each retailer's website (its sitemaps, fact-sheet and pricing pages, and the PDFs they link to) and match documents to plans by plan ID. Each day a sample of plans is checked: supply charges and usage rates in the CDR data must appear on the plan's own fact sheet, including or excluding GST. Differences are reported as data-quality warnings.</li>
     </ul>
     <dl class="kv"><dt>Plans</dt><dd>${em.plans.toLocaleString('en-AU')} from ${em.retailers} retailers (${em.feedsOk} of ${em.feeds} feeds responding)</dd>
