@@ -283,7 +283,7 @@ function dqTotals(src = D.quality) {
   const bs = Q.brands || [];
   const sum = (f) => bs.reduce((a, b) => a + (f(b) || 0), 0);
   const web = {};
-  for (const k of ['urls', 'linksOk', 'linksBroken', 'linksHomepage', 'linksBlocked', 'linksRobots', 'linksSkipped', 'pdfsRead', 'pagesRead', 'ratesChecked', 'ratesFound', 'feesChecked', 'feesFound', 'productsChecked', 'productsMatched', 'productsUnverifiable']) web[k] = sum((b) => b.web?.[k]);
+  for (const k of ['urls', 'linksOk', 'linksBroken', 'linksHomepage', 'linksBlocked', 'linksRobots', 'linksSkipped', 'pdfsRead', 'pagesRead', 'ratesChecked', 'ratesFound', 'feesChecked', 'feesFound', 'productsChecked', 'productsMatched', 'productsUnverifiable', 'plansCovered', 'factSheetsFound']) web[k] = sum((b) => b.web?.[k]);
   web.linksChecked = web.urls - web.linksBlocked - web.linksRobots - web.linksSkipped;
   const std = { checked: sum((b) => b.standards?.checked), withIssues: sum((b) => b.standards?.withIssues) };
   const byCode = {};
@@ -295,7 +295,7 @@ function dqTotals(src = D.quality) {
       e.brands++;
     }
   const top = Object.values(byCode).sort((a, b) => b.brands - a.brands || b.count - a.count);
-  return { Q, bs, web, std, errors: sum((b) => b.errors), warnings: sum((b) => b.warnings), top, hasWeb: web.urls > 0 };
+  return { Q, bs, web, std, errors: sum((b) => b.errors), warnings: sum((b) => b.warnings), top, hasWeb: web.urls > 0 || web.ratesChecked > 0 || web.pagesRead + web.pdfsRead > 0 };
 }
 const SEV = { error: 'Error', warning: 'Warning', info: 'Note' };
 const plural = (n, one, many = one + 's') => `${n.toLocaleString('en-AU')} ${n === 1 ? one : many}`;
@@ -806,13 +806,13 @@ function renderQuality(el, Q, sector, multi) {
   const cds = T.Q.cds;
   el.innerHTML = `
     <h2 class="page-title">${multi ? (E ? 'Energy data quality' : 'Banking data quality') : 'Data quality'}</h2>
-    <p class="muted dq-lede">${E ? `Every morning each retailer's published plans are checked three ways: against the Consumer Data Standards${cds ? ` (version ${esc(cds.spec)}, plan detail v${cds.detail})` : ''}, for plausible prices and working links, and against the prices on a rotating sample of each retailer's plan fact sheets.` : `Every morning each bank's published product data is checked three ways: against the Consumer Data Standards${cds ? ` (version ${esc(cds.spec)}, product detail v${cds.detail})` : ''}, for links that are broken or misleading, and against the rates and fees on the bank's own web pages and PDFs.`}</p>
+    <p class="muted dq-lede">${E ? `Every morning each retailer's published plans are checked three ways: against the Consumer Data Standards${cds ? ` (version ${esc(cds.spec)}, plan detail v${cds.detail})` : ''}, for plausible prices and working links, and against the plan fact sheets we find on each retailer's own website, a rotating sample each day.` : `Every morning each bank's published product data is checked three ways: against the Consumer Data Standards${cds ? ` (version ${esc(cds.spec)}, product detail v${cds.detail})` : ''}, for links that are broken or misleading, and against the rates and fees on the bank's own web pages and PDFs.`}</p>
     <div class="stats">
       <div class="stat"><div class="v">${brands.length - failing.length}/${brands.length}</div><div class="l">${word.api}</div></div>
       <div class="stat"><div class="v">${T.std.checked ? pctOf(T.std.checked - T.std.withIssues, T.std.checked) : '\u2014'}</div><div class="l">${word.items} with no standards issues</div></div>
       <div class="stat"><div class="v">${T.hasWeb ? pctOf(T.web.linksOk, T.web.linksChecked) : '\u2014'}</div><div class="l">${word.item} links working${T.hasWeb ? ` (${T.web.linksChecked.toLocaleString('en-AU')} checked)` : ''}</div></div>
       <div class="stat"><div class="v">${T.hasWeb ? pctOf(T.web.ratesFound, T.web.ratesChecked) : '\u2014'}</div><div class="l">${E ? 'prices confirmed on fact sheets' : 'rates confirmed on bank websites'}</div></div>
-      ${E ? `<div class="stat"><div class="v">${T.web.productsUnverifiable || 0}</div><div class="l">fact sheets we couldn't read</div></div>` : `<div class="stat"><div class="v">${T.hasWeb ? pctOf(T.web.feesFound, T.web.feesChecked) : '\u2014'}</div><div class="l">fees confirmed on bank websites</div></div>`}
+      ${E ? `<div class="stat"><div class="v">${(T.web.plansCovered || 0).toLocaleString('en-AU')}</div><div class="l">plans with a fact sheet found on the retailer's website</div></div>` : `<div class="stat"><div class="v">${T.hasWeb ? pctOf(T.web.feesFound, T.web.feesChecked) : '\u2014'}</div><div class="l">fees confirmed on bank websites</div></div>`}
     </div>
     ${T.hasWeb ? `<p class="small muted dq-note">Read ${T.web.pagesRead.toLocaleString('en-AU')} web pages and ${T.web.pdfsRead.toLocaleString('en-AU')} PDFs. ${T.web.linksBlocked || T.web.linksRobots ? `${plural(T.web.linksBlocked, 'page')} blocked automated checks and ${plural(T.web.linksRobots, 'page')} ${T.web.linksRobots === 1 ? 'was' : 'were'} excluded by robots.txt; those ${word.items} are marked as not checked rather than wrong.` : ''}</p>` : ''}
     <div id="dq-table"></div>
@@ -890,7 +890,8 @@ async function openBrandReport(brandId, sector = 'banking') {
     <div class="dq-chips">${x?.errors ? `<span class="sev-n err">${plural(x.errors, 'error')}</span>` : ''}${x?.warnings ? `<span class="sev-n warn">${plural(x.warnings, 'warning')}</span>` : ''}${x?.infos ? `<span class="sev-n note">${plural(x.infos, 'note')}</span>` : ''}${!x?.total ? '<span class="status-ok">No issues found</span>' : ''}</div>
     <dl class="kv">
       <dt>Standards</dt><dd>${x?.standards ? `${x.standards.checked - x.standards.withIssues} of ${x.standards.checked} ${sector === 'energy' ? 'plans' : 'products'} with no issues` : '\u2014'}</dd>
-      <dt>${sector === 'energy' ? 'Fact sheets' : 'Website match'}</dt><dd>${w ? (sector === 'energy' ? `${w.ratesFound} of ${w.ratesChecked} prices found on the fact sheets checked today` : `${w.ratesFound} of ${w.ratesChecked} rates and ${w.feesFound} of ${w.feesChecked} fees found on the bank's pages`) : 'Not checked'}</dd>
+      ${sector === 'energy' ? `<dt>Website</dt><dd>${w?.website ? link(w.website) : 'Not identified'}${w?.website ? ` · fact sheets found for ${(w.plansCovered || 0).toLocaleString('en-AU')} of ${(x?.plans || 0).toLocaleString('en-AU')} plans so far` : ''}</dd>` : ''}
+      <dt>${sector === 'energy' ? 'Fact sheets' : 'Website match'}</dt><dd>${w ? (sector === 'energy' ? (w.ratesChecked ? `${w.ratesFound} of ${w.ratesChecked} prices match the fact sheets of the ${w.productsChecked} plans checked today` : 'No plans checked today') : `${w.ratesFound} of ${w.ratesChecked} rates and ${w.feesFound} of ${w.feesChecked} fees found on the bank's pages`) : 'Not checked'}</dd>
       <dt>Pages read</dt><dd>${w ? `${w.pagesRead} web pages, ${w.pdfsRead} PDFs` : '\u2014'}</dd>
       <dt>Links</dt><dd>${w ? `${w.linksOk} of ${w.urls} working${w.linksBroken ? `, ${w.linksBroken} broken` : ''}${w.linksHomepage ? `, ${w.linksHomepage} to homepage` : ''}${w.linksBlocked ? `, ${w.linksBlocked} blocked` : ''}` : '\u2014'}</dd>
     </dl>
@@ -929,6 +930,7 @@ renderers.about = () => {
       <li>Conditional discounts (pay on time, direct debit) are only included if you tick the box. Demand charges aren't estimated; demand plans are hidden unless you ask for them.</li>
       <li>Rankings use ${(em.defaults?.E?.usage || 4000).toLocaleString('en-AU')} kWh of electricity or ${(em.defaults?.G?.usage || 20000).toLocaleString('en-AU')} MJ of gas a year, residential market plans, on the network with the most plans in each state. Plans limited to particular groups (such as seniors or club members) and plans with data errors are left out of rankings.</li>
       <li>Gas rates without a stated unit are treated as per MJ.</li>
+      <li>Fact sheets: most plans don't link to their fact sheet in the CDR data, so we search each retailer's website (its sitemaps, fact-sheet and pricing pages, and the PDFs they link to) and match documents to plans by plan ID. Each day a sample of plans is checked: supply charges and usage rates in the CDR data must appear on the plan's own fact sheet, including or excluding GST. Differences are reported as data-quality warnings.</li>
     </ul>
     <dl class="kv"><dt>Plans</dt><dd>${em.plans.toLocaleString('en-AU')} from ${em.retailers} retailers (${em.feedsOk} of ${em.feeds} feeds responding)</dd>
     <dt>Plan detail</dt><dd>${em.detail ? `${em.detail.fetched} read today, ${em.detail.reused} unchanged${em.detail.deferred ? `, ${em.detail.deferred} deferred to tomorrow` : ''}` : '—'}</dd>
