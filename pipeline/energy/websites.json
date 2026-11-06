@@ -1,0 +1,33 @@
+{
+  "note": "Each retailer brand's public website, used to find its plan fact sheets (Basic Plan Information Documents, Victorian Energy Fact Sheets). Brands not listed here are looked up automatically by trying likely addresses, and the result is cached in site/data/energy/cache/websites.json. Add or correct entries here when the automatic lookup gets it wrong.",
+  "websites": {
+    "1st-energy": "https://www.1stenergy.com.au",
+    "actewagl": "https://www.actewagl.com.au",
+    "agl": "https://www.agl.com.au",
+    "alinta": "https://www.alintaenergy.com.au",
+    "amber": "https://www.amber.com.au",
+    "aurora": "https://www.auroraenergy.com.au",
+    "blue-nrg": "https://www.bluenrg.com.au",
+    "covau": "https://www.covau.com.au",
+    "diamond": "https://www.diamondenergy.com.au",
+    "dodo": "https://www.dodo.com",
+    "energy-locals": "https://www.energylocals.com.au",
+    "energyaustralia": "https://www.energyaustralia.com.au",
+    "engie": "https://engie.com.au",
+    "ergon": "https://www.ergon.com.au",
+    "flow-power": "https://flowpower.com.au",
+    "globird": "https://www.globirdenergy.com.au",
+    "kogan": "https://www.koganenergy.com.au",
+    "lumo": "https://www.lumoenergy.com.au",
+    "momentum": "https://www.momentumenergy.com.au",
+    "nectr": "https://www.nectr.com.au",
+    "next-business": "https://www.nextbusinessenergy.com.au",
+    "origin": "https://www.originenergy.com.au",
+    "ovo-energy": "https://www.ovoenergy.com.au",
+    "powershop": "https://www.powershop.com.au",
+    "red-energy": "https://www.redenergy.com.au",
+    "shell-energy": "https://www.shellenergy.com.au",
+    "sumo-power": "https://www.sumo.com.au",
+    "tango": "https://www.tangoenergy.com"
+  }
+}

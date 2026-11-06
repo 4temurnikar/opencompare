@@ -107,6 +107,9 @@ export const ENERGY_LABELS = {
   E_FIT_IMPLAUSIBLE: 'Implausible solar feed-in tariff',
   E_EXPIRED: 'Plan listed as current after its end date',
   E_NO_GEOGRAPHY: 'Plan can’t be matched to any location',
-  WEB_PRICE_NOT_FOUND: 'CDR price not found on the plan’s fact sheet or pages',
-  WEB_SUPPLY_NOT_FOUND: 'CDR daily supply charge not found on the plan’s fact sheet or pages',
+  WEB_PRICE_NOT_FOUND: 'CDR price doesn’t match the plan’s fact sheet',
+  E_NO_PLAN_LINKS: 'Plans don’t link to their fact sheets or plan pages in the CDR data',
+  WEB_SITE_UNKNOWN: 'Retailer website not identified, so fact sheets weren’t checked',
+  WEB_NO_FACT_SHEETS: 'No plan fact sheets found on the retailer’s website yet',
+  WEB_SUPPLY_NOT_FOUND: 'CDR daily supply charge doesn’t match the plan’s fact sheet',
 };

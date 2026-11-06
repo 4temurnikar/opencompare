@@ -9,6 +9,8 @@ import { normalisePlan } from './normalise.mjs';
 import { checkPlan, checkAccuracy, ENERGY_CDS } from './standards.mjs';
 import { typicalCosts, buildEnergyInsights, diffPlans } from './insights.mjs';
 import { fetchDoc, webStats, closeBrowser } from '../web.mjs';
+import { resolveWebsite, crawlRetailer } from './factsheets.mjs';
+import { failure } from '../consistency.mjs';
 import { describe, CATEGORIES, SEVERITY_ORDER } from '../dq.mjs';
 import { DEFAULTS, GST } from '../../site/energy-cost.js';
 
@@ -135,6 +137,7 @@ async function main() {
     }
   }
   await Promise.all(Array.from({ length: E.detailConcurrency }, worker));
+  for (const p of plans) if (typeof p.b === 'string') p.b = p.b.trim(); // some feeds pad brand ids with spaces
   log(`Plan detail: ${counts.fetched} fetched, ${counts.reused} unchanged, ${counts.failed} failed, ${counts.deferred} deferred to the next run`);
   if (!plans.length && prev.size) throw new Error('No energy plans this run — keeping the previous data.');
 
@@ -156,16 +159,26 @@ async function main() {
     });
   }
 
-  // 4. Fact sheets and links for a rotating sample of plans per retailer
+  // 4. Fact sheets: links in the plan's CDR data (when published) and the retailer's own website
   const byBrand = new Map();
   for (const p of plans) (byBrand.get(p.b) || byBrand.set(p.b, []).get(p.b)).push(p);
-  const web = new Map(); // brand -> { docs, checks, issues }
+  const hasLinks = (p) => Object.values(p.links || {}).some(Boolean);
+  const hasDocLinks = (p) => !!(p.links?.pricing || p.links?.overview || p.links?.terms);
+  const linksPublished = plans.filter(hasDocLinks).length;
+  log(`${linksPublished} of ${plans.length} plans link to a fact sheet or plan page in their CDR data`);
+  const web = new Map(); // brand -> { sample, urls, docs, website, fs }
   if (E.web) {
     const wDeadline = Date.now() + E.webBudgetMs;
+    await mkdir(join(OUT, 'cache'), { recursive: true });
+    const configured = (await readJson(E.websitesFile))?.websites || {};
+    const siteCache = (await readJson(join(OUT, 'cache', 'websites.json'))) || {};
+    const fsIndex = (await readJson(join(OUT, 'cache', 'factsheets.json'))) || {};
+    const info = new Map(retailers.map((r) => [r.brand.trim(), r]));
     await Promise.all(
       [...byBrand.entries()].map(async ([brand, list]) => {
+        // a) links published in the CDR data
         const sample = list
-          .filter((p) => p.detail)
+          .filter((p) => p.detail && hasLinks(p))
           .sort((a, b) => hash(dayKey + a.id) - hash(dayKey + b.id))
           .slice(0, E.webPlansPerRetailer);
         const urls = new Map();
@@ -178,11 +191,28 @@ async function main() {
           }
         const docs = new Map();
         await Promise.all([...urls.keys()].map(async (u) => docs.set(u, await fetchDoc(u, wDeadline))));
-        web.set(brand, { sample, urls, docs });
+        // b) the retailer's website
+        const r = info.get(brand);
+        const name = r?.name || list[0]?.r || brand;
+        const ws = await resolveWebsite({ brand, name, configured: r && 'website' in r ? r.website : configured[brand], cached: siteCache[brand], deadline: wDeadline, today: dayKey });
+        if (ws.how === 'guessed' || ws.how === 'not found') siteCache[brand] = { url: ws.url, at: dayKey };
+        let fs = null;
+        if (ws.url) {
+          try {
+            fs = await crawlRetailer({ website: ws.url, name, plans: list, index: fsIndex[brand], deadline: wDeadline, limits: E.factSheets, today: dayKey });
+            fsIndex[brand] = fs.index;
+          } catch (e) {
+            log(`  ${name}: fact-sheet search failed (${e.message})`);
+          }
+        }
+        web.set(brand, { sample, urls, docs, website: ws.url, fs });
       })
     );
     await closeBrowser();
-    log(`Checked ${[...web.values()].reduce((a, w) => a + w.docs.size, 0)} fact sheets and pages`);
+    await writeFile(join(OUT, 'cache', 'websites.json'), JSON.stringify(siteCache));
+    await writeFile(join(OUT, 'cache', 'factsheets.json'), JSON.stringify(fsIndex));
+    const ws = [...web.values()];
+    log(`Websites known for ${ws.filter((w) => w.website).length} of ${ws.length} retailers; fact sheets found for ${ws.reduce((a, w) => a + (w.fs?.stats.plansCovered || 0), 0)} plans; checked ${ws.reduce((a, w) => a + (w.fs?.sample.length || 0) + w.sample.length, 0)} today`);
   }
 
   // 5. Assemble data quality per retailer brand
@@ -229,12 +259,12 @@ async function main() {
           const f = new URL(d.finalUrl || u);
           if ((fields.has('overview') || fields.has('pricing')) && (f.pathname === '/' || !f.pathname)) homepage = true;
         } catch {}
-        const status = d.skipped ? 'skipped' : d.robots ? 'robots' : d.blocked ? 'blocked' : !d.ok ? 'broken' : homepage && !fields.has('apply') ? 'homepage' : 'ok';
+        const status = d.skipped ? 'skipped' : d.robots ? 'robots' : d.blocked ? 'blocked' : !d.ok ? failure(d) : homepage && !fields.has('apply') ? 'homepage' : 'ok';
         sum.urls++;
-        sum[{ ok: 'linksOk', broken: 'linksBroken', homepage: 'linksHomepage', blocked: 'linksBlocked', robots: 'linksRobots', skipped: 'linksSkipped' }[status]]++;
+        sum[{ ok: 'linksOk', broken: 'linksBroken', homepage: 'linksHomepage', blocked: 'linksBlocked', robots: 'linksRobots', skipped: 'linksSkipped', unchecked: 'linksSkipped' }[status]]++;
         if (d.ok && d.kind === 'pdf') sum.pdfsRead++;
         if (d.ok && d.kind === 'html') sum.pagesRead++;
-        const code = { broken: 'LINK_BROKEN', homepage: 'LINK_HOMEPAGE', blocked: 'LINK_BLOCKED', robots: 'LINK_ROBOTS' }[status];
+        const code = { broken: 'LINK_BROKEN', homepage: 'LINK_HOMEPAGE', blocked: 'LINK_BLOCKED', robots: 'LINK_ROBOTS', unchecked: 'LINK_UNCHECKED' }[status];
         for (const p of ps.slice(0, 20)) {
           if (code) all.push({ code, productId: p.id, product: p.n, field: [...fields].join(', '), value: u, detail: d.status ? `HTTP ${d.status}` : d.error || d.finalUrl });
           if (d.notHttps) all.push({ code: 'LINK_NOT_HTTPS', productId: p.id, product: p.n, field: [...fields].join(', '), value: u });
@@ -242,22 +272,33 @@ async function main() {
         if (status !== 'ok') links.push({ url: u, finalUrl: d.finalUrl, status, httpStatus: d.status, error: d.error, fields: [...fields], products: ps.slice(0, 5).map((p) => p.n) });
       }
       // Prices on fact sheets (shown including or excluding GST, in cents)
+      const toCheck = new Map(); // planId -> { p, docs: [{ url, kind, values, failed }] }
       for (const p of w.sample) {
-        const docs = Object.entries(p.links)
+        const list = Object.entries(p.links)
           .filter(([f, u]) => u && ['pricing', 'overview'].includes(f))
-          .map(([, u]) => w.docs.get(u))
-          .filter((d) => d?.ok && d.textLen > 120);
-        const values = [...new Set(docs.flatMap((d) => d.cents || []))];
+          .map(([, u]) => {
+            const d = w.docs.get(u);
+            const failed = !d?.ok ? (d?.blocked ? 'blocked automated checks' : d?.robots ? 'excluded by robots.txt' : d?.skipped ? 'not read today (time limit)' : 'could not be read') : d.textLen <= 120 ? 'page was empty' : null;
+            return { url: d?.finalUrl || u, kind: d?.kind, values: failed ? [] : d.cents || [], failed };
+          });
+        if (list.length) toCheck.set(p.id, { p, docs: list });
+      }
+      for (const p of w.fs?.sample || []) {
+        const e = toCheck.get(p.id) || toCheck.set(p.id, { p, docs: [] }).get(p.id);
+        e.docs.push(...(w.fs.planDocs.get(p.id) || []));
+      }
+      for (const { p, docs } of toCheck.values()) {
+        const values = [...new Set(docs.flatMap((d) => d.values))];
         const items = [];
         for (const [fuel, c] of [['electricity', p.e], ['gas', p.g]]) {
           if (!c?.tp?.length) continue;
           const t = c.tp.find((x) => x.kind && x.kind !== 'demand');
           if (!t) continue;
-          const toCheck = [];
-          if (t.sup) toCheck.push({ kind: 'supply', what: `${fuel} daily supply`, v: t.sup });
-          if (t.kind === 'single' && t.blocks[0]) toCheck.push({ kind: 'price', what: `${fuel} usage rate`, v: t.blocks[0].p });
-          if (t.kind === 'tou') for (const r of t.tou.slice(0, 3)) if (r.blocks[0]) toCheck.push({ kind: 'price', what: `${fuel} ${String(r.type || r.name).toLowerCase().replace(/_/g, ' ')} rate`, v: r.blocks[0].p });
-          for (const x of toCheck) {
+          const want = [];
+          if (t.sup) want.push({ kind: 'supply', what: `${fuel} daily supply`, v: t.sup });
+          if (t.kind === 'single' && t.blocks[0]) want.push({ kind: 'price', what: `${fuel} usage rate`, v: t.blocks[0].p });
+          if (t.kind === 'tou') for (const r of t.tou.slice(0, 3)) if (r.blocks[0]) want.push({ kind: 'price', what: `${fuel} ${String(r.type || r.name).toLowerCase().replace(/_/g, ' ')} rate`, v: r.blocks[0].p });
+          for (const x of want) {
             const incl = x.v * 100 * (1 + GST);
             const excl = x.v * 100;
             const found = near(values, incl) || near(values, excl) || near(values, Math.round(incl * 100) / 100) || near(values, Math.round(excl * 100) / 100);
@@ -265,24 +306,38 @@ async function main() {
           }
         }
         if (!items.length) continue;
-        if (!docs.length || !values.length) {
-          // Nothing with prices on it could be read (e.g. the fact sheet blocked us): not checked, not wrong
-          const sheet = p.links.pricing ? w.docs.get(p.links.pricing) : null;
-          const why = sheet?.blocked ? 'fact sheet blocked automated checks' : sheet?.robots ? 'fact sheet excluded by robots.txt' : !p.links.pricing ? 'no fact sheet link published' : !docs.length ? 'fact sheet could not be read' : 'no prices found on the readable pages';
+        const sources = docs.map((d) => ({ url: d.url, kind: d.kind }));
+        if (!values.length && docs.every((d) => /time limit/.test(d.failed || ''))) continue; // ran out of time today: try again tomorrow
+        if (!values.length) {
+          // Nothing with prices on it could be read: not checked, not wrong
+          const why = docs.find((d) => d.failed)?.failed ? `fact sheet ${docs.find((d) => d.failed).failed}` : 'no prices for this plan could be read from its fact sheet';
           sum.productsUnverifiable++;
-          checks.push({ k: p.id, product: p.n, status: 'unverifiable', why, sources: [], items: [] });
-          all.push({ code: 'WEB_UNVERIFIABLE', productId: p.id, product: p.n, detail: why });
+          checks.push({ k: p.id, product: p.n, status: 'unverifiable', why, sources, items: [] });
+          all.push({ code: 'WEB_UNVERIFIABLE', productId: p.id, product: p.n, value: sources[0]?.url || null, detail: why });
           continue;
         }
         sum.productsChecked++;
         for (const i of items) {
           sum.ratesChecked++;
           if (i.found) sum.ratesFound++;
-          else all.push({ code: i.kind === 'fee' ? 'WEB_SUPPLY_NOT_FOUND' : 'WEB_PRICE_NOT_FOUND', productId: p.id, product: p.n, field: i.what, value: `${i.value.toFixed(2)}c incl. GST`, detail: values.length ? `closest on the fact sheet: ${i.closest.map((v) => v.toFixed(2) + 'c').join(', ')}` : 'no prices found on the fact sheet' });
+          else all.push({ code: i.kind === 'fee' ? 'WEB_SUPPLY_NOT_FOUND' : 'WEB_PRICE_NOT_FOUND', productId: p.id, product: p.n, field: i.what, value: `${i.value.toFixed(2)}c incl. GST`, detail: `closest on the fact sheet: ${i.closest.map((v) => v.toFixed(2) + 'c').join(', ')} (${sources[0]?.url || ''})` });
         }
         const missing = items.filter((i) => !i.found);
-        if (!missing.length) sum.productsMatched++;
-        else checks.push({ k: p.id, product: p.n, status: 'mismatch', sources: docs.map((d) => ({ url: d.finalUrl || d.url, kind: d.kind })), items: missing.map((i) => ({ ...i, kind: 'cents' })) });
+        if (!missing.length) sum.productsMatched++, checks.push({ k: p.id, product: p.n, status: 'match', sources, items: [] });
+        else checks.push({ k: p.id, product: p.n, status: 'mismatch', sources, items: missing.map((i) => ({ ...i, kind: 'cents' })) });
+      }
+      // Retailer-level findings about where fact sheets come from
+      if (!list.some(hasDocLinks)) all.push({ code: 'E_NO_PLAN_LINKS', detail: `none of ${list.length.toLocaleString('en-AU')} plans include links (additionalInformation) to a fact sheet or plan page` });
+      const viaCdr = list.some(hasDocLinks);
+      if (!w.website && !viaCdr) all.push({ code: 'WEB_SITE_UNKNOWN', detail: 'add the retailer’s website to pipeline/energy/websites.json' });
+      else if (w.fs) {
+        const st = w.fs.stats;
+        sum.website = w.website;
+        sum.plansCovered = st.plansCovered;
+        sum.factSheetsFound = st.docsFound;
+        sum.pagesRead += st.pagesRead;
+        sum.pdfsRead += st.pdfsRead;
+        if (!st.plansCovered && !viaCdr) all.push({ code: 'WEB_NO_FACT_SHEETS', value: w.website, detail: `searched today: ${st.sitemapUrls ? `${st.sitemapUrls.toLocaleString('en-AU')} sitemap entries, ` : ''}${st.pagesRead} pages, ${st.pdfsRead} PDFs${st.blocked ? `; ${st.blocked} blocked automated checks` : ''}` });
       }
     }
 
@@ -357,6 +412,7 @@ async function main() {
         retailersListed: chosen.length,
         feeds: feeds.length,
         feedsOk: feedResults.filter((f) => f.ok).length,
+        plansWithLinks: linksPublished,
         plans: plans.length,
         electricity: plans.filter((p) => p.e).length,
         gas: plans.filter((p) => p.g).length,
