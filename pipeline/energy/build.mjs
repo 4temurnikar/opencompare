@@ -11,7 +11,7 @@ import { typicalCosts, buildEnergyInsights, diffPlans } from './insights.mjs';
 import { fetchDoc, webStats, closeBrowser } from '../web.mjs';
 import { resolveWebsite, crawlRetailer } from './factsheets.mjs';
 import { failure } from '../consistency.mjs';
-import { describe, CATEGORIES, SEVERITY_ORDER } from '../dq.mjs';
+import { summarise, fieldKey, CATEGORIES, LEVELS } from '../dq.mjs';
 import { DEFAULTS, GST } from '../../site/energy-cost.js';
 
 const E = config.energy;
@@ -128,7 +128,7 @@ async function main() {
         stdByPlan[it.planId] = { v: version, issues: checkPlan(merged).map((i) => [i.code, i.path, i.value, i.msg]) };
       } catch (e) {
         counts.failed++;
-        extra.push({ code: 'DETAIL_FAILED', value: e.message });
+        extra.push({ code: 'E_DETAIL_FAILED', value: e.message });
         plans.push(old ? { ...old, stale: true } : normalisePlan({ ...it, _detailMissing: true }, nameByBrand.get(it.brand)));
         stdByPlan[it.planId] = stdCache[it.planId] || { v: null, issues: [] };
       }
@@ -228,7 +228,7 @@ async function main() {
     const retailer = list[0]?.r || nameByBrand.get(brand) || brand;
     const feed = feedResults.find((f) => chosen.some((r) => r.brand === brand && host(r.baseUri) === f.base));
     const all = [];
-    if (feed && !feed.ok) all.push({ code: 'LIST_FAILED', value: feed.error });
+    if (feed && !feed.ok) all.push({ code: 'E_FEED_FAILED', value: feed.error });
     const versions = {};
     let stdChecked = 0;
     let stdWith = 0;
@@ -341,31 +341,32 @@ async function main() {
       }
     }
 
-    const described = all.map((i) => ({ ...i, ...describe(i.code), product: i.product ?? null }));
-    described.sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
-    const groups = {};
-    for (const i of described) {
-      const g = (groups[i.code] ??= { code: i.code, label: i.label, category: i.category, severity: i.severity, count: 0, products: new Set(), examples: [] });
-      g.count++;
-      if (i.productId) g.products.add(i.productId);
-      if (g.examples.length < 3) g.examples.push({ product: i.product, field: i.field ?? null, value: i.value ?? null, detail: i.detail ?? null });
+    const S = summarise(all);
+    const gkey = (i) => `${i.code}|${['SCHEMA_REQUIRED', 'SCHEMA_ENUM', 'SCHEMA_TYPE', 'RULE_CONDITIONAL'].includes(i.code) || i.code.startsWith('FORMAT_') ? fieldKey(i.field) : ''}|${i.level}`;
+    // keep up to 150 examples of each finding for the report
+    const perGroup = new Map();
+    const kept = [];
+    for (const i of S.described) {
+      const k = gkey(i);
+      const n = perGroup.get(k) || 0;
+      if (n < 150) kept.push({ ...i, gk: k }), perGroup.set(k, n + 1);
     }
-    const gl = Object.values(groups)
-      .map((g) => ({ ...g, products: g.products.size }))
-      .sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity] || b.count - a.count);
-    const n = (s) => described.filter((i) => i.severity === s).length;
     const file = `energy/dq/${safe(brand)}.json`;
-    await writeFile(join(OUT, 'dq', `${safe(brand)}.json`), JSON.stringify({ brandId: brand, brand: retailer, issues: described.slice(0, 1200).map(({ label, category, severity, ...i }) => i), truncated: described.length > 1200, links: links.slice(0, 400), checks: checks.slice(0, 400) }));
+    await writeFile(join(OUT, 'dq', `${safe(brand)}.json`), JSON.stringify({ brandId: brand, brand: retailer, issues: kept.map(({ label, category, severity, ...i }) => i), truncated: false, links: links.slice(0, 400), checks: checks.slice(0, 400) }));
     quality.push({
       brandId: brand,
       brand: retailer,
       ok: !feed || feed.ok,
-      total: described.length,
-      errors: n('error'),
-      warnings: n('warning'),
-      infos: n('info'),
-      byCategory: Object.fromEntries(CATEGORIES.map((c) => [c.id, described.filter((i) => i.category === c.id && i.severity !== 'info').length])),
-      issues: gl,
+      total: S.described.length,
+      findings: S.findings,
+      notes: S.notes,
+      levels: S.levels,
+      affected: S.affected,
+      errors: S.errors,
+      warnings: S.warnings,
+      infos: S.infos,
+      byCategory: S.byCategory,
+      issues: S.groups.map((g) => ({ ...g, gk: `${g.code}|${g.field || ''}|${g.level}` })),
       standards: { checked: stdChecked, withIssues: stdWith, versions },
       web: w ? sum : null,
       plans: list.length,
@@ -394,15 +395,15 @@ async function main() {
   const prevChanges = (await readJson(join(OUT, 'changes.json'))) || { runs: [] };
   prevChanges.runs = [{ at: new Date().toISOString(), count: changes.length, changes: changes.slice(0, 300) }, ...(prevChanges.runs || [])].slice(0, 30);
   const retailersOut = [...byBrand.entries()].map(([b, list]) => ({ brand: b, name: list[0]?.r || nameByBrand.get(b) || b, plans: list.length, elec: list.filter((p) => p.e).length, gas: list.filter((p) => p.g).length, states: [...new Set(list.flatMap((p) => p.st))].sort() }));
-  const worst = quality.filter((q) => q.errors + q.warnings).sort((a, b) => b.errors - a.errors);
-  if (worst.length) insights.push({ id: 'dq', group: 'Data quality', headline: `${worst.length} of ${quality.length} retailers have data-quality problems in their published plans`, detail: `Most errors: ${worst.slice(0, 3).map((q) => `${q.brand} (${q.errors})`).join(', ')}.` });
+  const serious = quality.filter((q) => q.levels[1] + q.levels[2]).sort((a, b) => b.levels[1] - a.levels[1] || b.levels[2] - a.levels[2]);
+  if (serious.length) insights.push({ id: 'dq', group: 'Data quality', headline: `${serious.length} of ${quality.length} retailers have critical or major problems in their published plans`, detail: `For example ${serious.slice(0, 3).map((q) => `${q.brand} (${q.levels[1] + q.levels[2]})`).join(', ')}. See the data-quality report for details.` });
 
   await Promise.all([
     writeFile(join(OUT, 'boards.json'), JSON.stringify(boards)),
     writeFile(join(OUT, 'insights.json'), JSON.stringify(insights)),
     writeFile(join(OUT, 'changes.json'), JSON.stringify(prevChanges)),
     writeFile(join(OUT, 'retailers.json'), JSON.stringify(retailersOut.sort((a, b) => a.name.localeCompare(b.name)))),
-    writeFile(join(OUT, 'quality.json'), JSON.stringify({ cds: ENERGY_CDS, categories: CATEGORIES, web: { enabled: E.web, stats: webStats }, brands: quality.sort((a, b) => b.errors - a.errors || b.warnings - a.warnings || a.brand.localeCompare(b.brand)) })),
+    writeFile(join(OUT, 'quality.json'), JSON.stringify({ cds: ENERGY_CDS, categories: CATEGORIES, web: { enabled: E.web, stats: webStats }, levels: LEVELS, brands: quality.sort((a, b) => b.levels[1] - a.levels[1] || b.levels[2] - a.levels[2] || b.findings - a.findings || a.brand.localeCompare(b.brand)) })),
     writeFile(
       join(OUT, 'meta.json'),
       JSON.stringify({

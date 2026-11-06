@@ -81,9 +81,13 @@ export function checkAccuracy(rec) {
       for (const v of prices) {
         if (v > 5) out.push({ code: 'E_PRICE_IN_CENTS', field: `${fuel} usage rate`, value: String(v), detail: `$${v} per unit looks like cents, not dollars` });
         else if (v > limit) out.push({ code: 'E_PRICE_IMPLAUSIBLE', field: `${fuel} usage rate`, value: String(v), detail: `$${v} per unit excl. GST is unusually high` });
-        else if (v <= 0) out.push({ code: 'E_PRICE_IMPLAUSIBLE', field: `${fuel} usage rate`, value: String(v), detail: 'usage rate is zero or negative' });
+        else if (v < 0) out.push({ code: 'E_PRICE_IMPLAUSIBLE', field: `${fuel} usage rate`, value: String(v), detail: 'usage rate is negative' });
       }
-      if (p.sup !== null && p.sup > 10) out.push({ code: p.sup > 50 ? 'E_PRICE_IN_CENTS' : 'E_PRICE_IMPLAUSIBLE', field: `${fuel} daily supply`, value: String(p.sup), detail: `$${p.sup} a day excl. GST` });
+      // A free period (e.g. the Solar Sharer's free midday hours) is fine; every rate being zero isn't
+      if (prices.length && prices.every((v) => v === 0)) out.push({ code: 'E_PRICE_IMPLAUSIBLE', field: `${fuel} usage rate`, value: '0', detail: 'every usage rate in this tariff period is zero' });
+      // Large business sites can have high daily charges; homes shouldn't
+      const supMax = rec.cu === 'BUSINESS' ? 60 : 10;
+      if (p.sup !== null && p.sup > supMax) out.push({ code: p.sup > 50 && rec.cu !== 'BUSINESS' ? 'E_PRICE_IN_CENTS' : p.sup > 150 ? 'E_PRICE_IN_CENTS' : 'E_PRICE_IMPLAUSIBLE', field: `${fuel} daily supply`, value: String(p.sup), detail: `$${p.sup} a day excl. GST${rec.cu === 'BUSINESS' ? ' for a business plan' : ''}` });
       if (p.sup === null && !p.bands?.length && p.kind !== 'demand') out.push({ code: 'E_NO_SUPPLY', field: `${fuel} daily supply`, detail: 'no daily supply charge' });
       if (p.kind === 'single' && p.blocks.some((b) => b.v) && !p.per) out.push({ code: 'E_BLOCK_NO_PERIOD', field: `${fuel} stepped rate`, detail: 'stepped rates without a period; a quarter is assumed' });
       if (!p.kind) out.push({ code: 'E_NO_TARIFFS', field: `${fuel} tariff period ${p.name || ''}`.trim(), detail: 'no usable rate structure' });
@@ -92,12 +96,14 @@ export function checkAccuracy(rec) {
   }
   if (rec.et && Date.parse(rec.et) < now) out.push({ code: 'E_EXPIRED', field: 'effectiveTo', value: rec.et, detail: 'plan listed as current but its end date has passed' });
   if (rec.up && now - Date.parse(rec.up) > 2 * 365 * 864e5) out.push({ code: 'STALE_LAST_UPDATED', field: 'lastUpdated', value: rec.up });
-  if (!rec.links.overview && !rec.links.pricing && !rec.links.apply) out.push({ code: 'NO_PRODUCT_LINK', field: 'links' });
+  // Links are optional in the energy standard: reported once per retailer (E_NO_PLAN_LINKS), not per plan
   if (!rec.st.length) out.push({ code: 'E_NO_GEOGRAPHY', field: 'geography', detail: 'no postcodes or recognised networks, so it can’t be matched to an address' });
   return out;
 }
 
 export const ENERGY_LABELS = {
+  E_FEED_FAILED: 'Plan feed unreachable or returning errors',
+  E_DETAIL_FAILED: 'Plan detail couldn’t be read',
   RULE_CONDITIONAL: 'A field the standard requires in this situation is missing or wrong',
   E_NO_TARIFFS: 'Plan has no usable tariff',
   E_PRICE_IN_CENTS: 'Price looks like cents published as dollars',
