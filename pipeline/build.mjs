@@ -10,7 +10,7 @@ import { buildInsights, diffRates } from './insights.mjs';
 import { checkProduct, CDS_VERSION } from './standards.mjs';
 import { readBrand, webStats, closeBrowser } from './web.mjs';
 import { compareBrand } from './consistency.mjs';
-import { describe, CATEGORIES, SEVERITY_ORDER } from './dq.mjs';
+import { summarise, fieldKey, CATEGORIES, LEVELS } from './dq.mjs';
 
 const OUT = config.outDir;
 const t0 = Date.now();
@@ -136,35 +136,25 @@ async function main() {
     const web = webByBrand.get(r.brand.brandId);
     const cmp = web ? compareBrand(ps, rs, web) : null;
 
-    const all = [
+    const all0 = [
       ...r.errors.map((e) => ({ code: e.stage === 'list' ? 'LIST_FAILED' : 'DETAIL_FAILED', productId: e.productId ?? null, value: e.message })),
       ...(r.ok && !ps.length ? [{ code: 'NO_PRODUCTS', value: 'Products endpoint responded but listed no products' }] : []),
       ...versionIssues,
       ...std,
       ...issues,
       ...(cmp?.issues || []),
-    ].map((i) => ({ ...i, ...describe(i.code), product: i.product ?? null }));
-    all.sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
-
-    const byCode = {};
-    for (const i of all) {
-      const g = (byCode[i.code] ??= { code: i.code, label: i.label, category: i.category, severity: i.severity, count: 0, products: new Set(), examples: [] });
-      g.count++;
-      if (i.productId) g.products.add(i.productId);
-      if (g.examples.length < 3) g.examples.push({ product: i.product, field: i.field ?? null, value: i.value ?? null, detail: i.detail ?? null });
-    }
-    const groups = Object.values(byCode)
-      .map((g) => ({ ...g, products: g.products.size }))
-      .sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity] || b.count - a.count);
-    const count = (sev) => all.filter((i) => i.severity === sev).length;
-    const byCategory = Object.fromEntries(CATEGORIES.map((c) => [c.id, all.filter((i) => i.category === c.id && i.severity !== 'info').length]));
+    ];
+    const S = summarise(all0);
+    const all = S.described;
+    const groups = S.groups.map((g) => ({ ...g, gk: `${g.code}|${g.field || ''}|${g.level}` }));
+    const byCategory = S.byCategory;
 
     await writeFile(
       join(OUT, 'dq', `${id}.json`),
       JSON.stringify({
         brandId: r.brand.brandId,
         brand: r.brand.brandName,
-        issues: all.slice(0, BRAND_ISSUE_CAP).map(({ label, category, severity, ...i }) => i),
+        issues: all.slice(0, BRAND_ISSUE_CAP).map(({ label, category, severity, ...i }) => ({ ...i, gk: `${i.code}|${['SCHEMA_REQUIRED', 'SCHEMA_ENUM', 'SCHEMA_TYPE', 'RULE_CONDITIONAL'].includes(i.code) || i.code.startsWith('FORMAT_') ? fieldKey(i.field) : ''}|${i.level}` })),
         truncated: all.length > BRAND_ISSUE_CAP,
         codes: Object.fromEntries(groups.map((g) => [g.code, { label: g.label, category: g.category, severity: g.severity }])),
         links: (cmp?.links || []).filter((l) => l.status !== 'ok').slice(0, 600).map((l) => ({ ...l, products: l.products.slice(0, 5) })),
@@ -176,9 +166,13 @@ async function main() {
       brand: r.brand.brandName,
       ok: r.ok,
       total: all.length,
-      errors: count('error'),
-      warnings: count('warning'),
-      infos: count('info'),
+      findings: S.findings,
+      notes: S.notes,
+      levels: S.levels,
+      affected: S.affected,
+      errors: S.errors,
+      warnings: S.warnings,
+      infos: S.infos,
       byCategory,
       issues: groups,
       standards: { checked: stdChecked, withIssues: stdWithIssues, versions: r.detailVersions },
@@ -226,14 +220,14 @@ async function main() {
       brands: [...new Set(changes.slice(0, 5).map((c) => c.brandId))],
     });
   }
-  const dqWorst = quality.filter((q) => q.errors + q.warnings).sort((a, b) => b.errors - a.errors || b.warnings - a.warnings);
+  const dqWorst = quality.filter((q) => q.levels[1] + q.levels[2]).sort((a, b) => b.levels[1] - a.levels[1] || b.levels[2] - a.levels[2]);
   if (dqWorst.length)
     insights.push({
       id: 'dq',
       group: 'Data quality',
       tone: 'dq',
-      headline: `${dqWorst.length} of ${brands.length} brands have data-quality issues in their published product data`,
-      detail: `Most errors: ${dqWorst.slice(0, 3).map((q) => `${q.brand} (${q.errors})`).join(', ')}. See the Data quality report; affected rates may be missing from comparisons.`,
+      headline: `${dqWorst.length} of ${brands.length} brands have critical or major problems in their published product data`,
+      detail: `For example ${dqWorst.slice(0, 3).map((q) => `${q.brand} (${q.levels[1] + q.levels[2]})`).join(', ')}. See the Data quality report; affected rates may be missing from comparisons.`,
       brands: dqWorst.slice(0, 3).map((q) => q.brandId),
     });
 
@@ -251,8 +245,9 @@ async function main() {
     writeJson('quality.json', {
       cds: CDS_VERSION,
       categories: CATEGORIES,
+      levels: LEVELS,
       web: { enabled: config.web.enabled, rendered: config.web.render, stats: webStats },
-      brands: quality.sort((a, b) => b.errors - a.errors || b.warnings - a.warnings || a.brand.localeCompare(b.brand)),
+      brands: quality.sort((a, b) => b.levels[1] - a.levels[1] || b.levels[2] - a.levels[2] || b.findings - a.findings || a.brand.localeCompare(b.brand)),
     }),
     writeJson('changes.json', prevChanges),
     writeJson('meta.json', {
