@@ -44,8 +44,9 @@ cost ──────► site/energy-cost.js: one cost model shared by the pip
 insights ──► cheapest plan per state network, standing-offer gap, best feed-in, price changes
      │
      ▼
-quality ───► CDS energy schema + "required if" rules, price plausibility, links, and prices on a
-     │       rotating sample of each retailer's plan fact sheets (12 plans per retailer per day)
+quality ───► CDS energy schema + "required if" rules, price plausibility, links, and prices on
+     │       each plan's own fact sheet, found on the retailer's website and matched by plan ID
+     │       (a rotating sample each day; the index of fact sheets grows from run to run)
      ▼
 site/data/energy/*.json (plans split by state) ──► website
 ```
@@ -103,7 +104,9 @@ insights ──► segment leaderboards, head-to-heads, market stats, day-on-day
 | `pipeline/energy/retailers.json` | AER list of retailer brands and feed URLs |
 | `site/energy-cost.js` | Annual cost model shared by the pipeline and the website |
 | `site/energy-ui.js` | Energy pages: home, plan finder, retailers, insights |
-| `scripts/mock-energy.mjs` | Mock AER feeds with fictional retailers and fact sheets |
+| `pipeline/energy/factsheets.mjs` | Finds each retailer's plan fact sheets on its own website (sitemaps, fact-sheet and pricing pages, linked PDFs), matches them to plans by plan ID and keeps a growing index in `site/data/energy/cache/factsheets.json` |
+| `pipeline/energy/websites.json` | Retailer websites; brands not listed are looked up by trying likely addresses (cached in `cache/websites.json`) |
+| `scripts/mock-energy.mjs` | Mock AER feeds with fictional retailers, plus mock retailer websites with sitemaps, fact-sheet pages and PDFs |
 | `scripts/update-energy-retailers.mjs` | Rebuilds the retailer list from the AER's PDF |
 | `pipeline/build.mjs` | Orchestrates the run and writes `site/data/` |
 | `site/` | The website — plain HTML/CSS/JS, no build step |
@@ -152,7 +155,7 @@ CDR_BANKING=public npm run refresh:mock
 MOCK_SHIFT=1 npm run mock   # restart with shifted rates, refresh again to see change detection
 ```
 
-Useful environment variables: `CDR_BANKING` (`private` / `public` / `off`), `CDR_ENERGY=0` (skip energy), `CDR_ENERGY_WEB=0` (skip fact-sheet checks), `CDR_ENERGY_WEB_PLANS` (fact sheets per retailer per day), `CDR_ENERGY_DETAIL_BUDGET_MIN`, `CDR_BRAND_FILTER="agl,origin"` (only matching retailers or banks), `CDR_PER_HOST_CONCURRENCY`, `CDR_GLOBAL_CONCURRENCY`, `CDR_TIMEOUT_MS`, `CDR_SAVE_RAW=1` (keep raw payloads in `raw/` for debugging), `CDR_WEB=0` (skip website and PDF checks), `CDR_WEB_RENDER=1` (render JavaScript pages with headless Chromium; needs `npm i playwright && npx playwright install chromium`), `CDR_WEB_BUDGET_MIN` (time limit for the web stage), `CDR_WEB_MAX_URLS` / `CDR_WEB_MAX_LINKED` (per-bank page limits).
+Useful environment variables: `CDR_BANKING` (`private` / `public` / `off`), `CDR_ENERGY=0` (skip energy), `CDR_ENERGY_WEB=0` (skip fact-sheet checks), `CDR_ENERGY_WEB_PLANS` (plans with CDR links checked per retailer per day), `CDR_ENERGY_FS_PAGES` / `CDR_ENERGY_FS_PDFS` / `CDR_ENERGY_FS_SAMPLE` (per retailer per day: pages and new PDFs read while searching its website, and plans checked against their fact sheets), `CDR_ENERGY_WEBSITES` (retailer websites file), `CDR_ENERGY_DETAIL_BUDGET_MIN`, `CDR_BRAND_FILTER="agl,origin"` (only matching retailers or banks), `CDR_PER_HOST_CONCURRENCY`, `CDR_GLOBAL_CONCURRENCY`, `CDR_TIMEOUT_MS`, `CDR_SAVE_RAW=1` (keep raw payloads in `raw/` for debugging), `CDR_WEB=0` (skip website and PDF checks), `CDR_WEB_RENDER=1` (render JavaScript pages with headless Chromium; needs `npm i playwright && npx playwright install chromium`), `CDR_WEB_BUDGET_MIN` (time limit for the web stage), `CDR_WEB_MAX_URLS` / `CDR_WEB_MAX_LINKED` (per-bank page limits).
 
 
 ## Data-quality checks
