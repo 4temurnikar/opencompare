@@ -73,7 +73,9 @@ async function load() {
       ratesByKey.get(r.k).push(r);
     }
   }
-  if (EN) energy = setupEnergy({ $, esc, money, table, bindFilters, sevBadge, pctOf, dqTotals, DATA, renderers, openDrawer, go, openBrandReport, EN });
+  if (EN) energy = setupEnergy({ $, esc, money, table, bindFilters, sevBadge, pctOf, dqTotals, DATA, renderers, openDrawer, go, openBrandReport, EN, banking: !!D.meta });
+  // Footer wording follows the sectors that are published
+  if (D.meta) $('#foot-note').textContent = `Prices and rates are as published by each provider through the Consumer Data Right and may differ from what you're offered.${EN ? ' Energy cost estimates are based on the usage you enter and include GST.' : ''} This is general information only, not financial advice. Check the provider's fact sheet or product disclosure before deciding.`;
   const at = new Date((D.meta || EN.meta).generatedAt);
   const ageH = (Date.now() - at) / 36e5;
   $('#freshness').innerHTML = `<span class="dot ${ageH > 36 ? 'stale' : ''}"></span>Updated ${esc(at.toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }))}`;
@@ -863,6 +865,7 @@ async function openBrandReport(brandId, sector = 'banking') {
   const link = (u) => (safeUrl(u) ? `<a href="${esc(u)}" target="_blank" rel="noopener nofollow">${esc(u.replace(/^https?:\/\//, '').slice(0, 90))}</a>` : esc(u ?? ''));
   const cell = (v) => (typeof v === 'string' && /^https?:\/\//.test(v) ? link(v) : `<code>${esc(v ?? '')}</code>`);
   const w = x?.web;
+  const item = sector === 'energy' ? 'plan' : 'product';
   const groupsHtml = cats
     .map((c) => {
       const groups = (x?.issues || []).filter((g) => g.category === c.id);
@@ -870,8 +873,8 @@ async function openBrandReport(brandId, sector = 'banking') {
       return `<h4>${esc(c.label)}</h4>${groups
         .map((g) => {
           const items = f.issues.filter((i) => i.code === g.code).slice(0, 150);
-          return `<details class="dq-group"><summary>${sevBadge(g.severity)}<span class="g-label">${esc(g.label)}</span><span class="g-count">${g.count.toLocaleString('en-AU')}${g.products ? ` in ${g.products} product${g.products > 1 ? 's' : ''}` : ''}</span></summary>
-            <div class="table-wrap"><table><thead><tr><th>Product</th><th>Field</th><th>Value</th><th>Detail</th></tr></thead><tbody>${items
+          return `<details class="dq-group"><summary>${sevBadge(g.severity)}<span class="g-label">${esc(g.label)}</span><span class="g-count">${g.count.toLocaleString('en-AU')}${g.products ? ` in ${g.products} ${item}${g.products > 1 ? 's' : ''}` : ''}</span></summary>
+            <div class="table-wrap"><table><thead><tr><th>${item === 'plan' ? 'Plan' : 'Product'}</th><th>Field</th><th>Value</th><th>Detail</th></tr></thead><tbody>${items
               .map((i) => `<tr><td>${esc(i.product || '\u2014')}</td><td>${i.field ? `<code>${esc(i.field)}</code>` : ''}</td><td>${i.value !== null && i.value !== undefined ? cell(i.value) : ''}</td><td class="small">${typeof i.detail === 'string' && /^https?:/.test(i.detail) ? link(i.detail) : esc(i.detail || '')}</td></tr>`)
               .join('')}</tbody></table></div>${g.count > items.length ? `<p class="small muted">Showing ${items.length} of ${g.count}.</p>` : ''}</details>`;
         })
@@ -880,7 +883,7 @@ async function openBrandReport(brandId, sector = 'banking') {
     .join('');
   const mismatches = (f.checks || []).filter((c) => c.status === 'mismatch');
   const badLinks = (f.links || []).filter((l) => l.status !== 'ok');
-  const STATUS = { broken: 'Broken', invalid: 'Invalid URL', homepage: 'Goes to homepage', blocked: 'Blocked our check', robots: 'Excluded by robots.txt', skipped: 'Not checked (time limit)' };
+  const STATUS = { broken: 'Broken', invalid: 'Invalid URL', homepage: 'Goes to homepage', blocked: 'Blocked our check', robots: 'Excluded by robots.txt', skipped: 'Not checked (time limit)', unchecked: 'Couldn’t check from our server' };
   body.innerHTML = `
     <h2 id="drawer-title">${esc(b?.brand || x?.brand || '')}</h2>
     <div class="muted">${esc(b?.baseUri || '')}</div>
@@ -906,7 +909,7 @@ async function openBrandReport(brandId, sector = 'banking') {
       .slice(0, 200)
       .map((l) => `<tr><td>${esc(STATUS[l.status] || l.status)}${l.httpStatus ? ` <span class="small muted">(HTTP ${l.httpStatus})</span>` : ''}</td><td class="small">${link(l.url)}${l.status === 'homepage' && l.finalUrl ? `<div class="muted">ends at ${link(l.finalUrl)}</div>` : ''}</td><td class="small">${esc(l.products.slice(0, 3).join(', '))}${l.products.length > 3 ? ` and ${l.products.length - 3} more` : ''}</td></tr>`)
       .join('')}</tbody></table></div>` : ''}
-    ${f.truncated ? '<p class="small muted">This bank has a very large number of findings; the first 1,200 are listed here, and the counts above include them all.</p>' : ''}`;
+    ${f.truncated ? `<p class="small muted">This ${sector === 'energy' ? 'retailer' : 'bank'} has a very large number of findings; the first 1,200 are listed here, and the counts above include them all.</p>` : ''}`;
 }
 
 // ---------- ABOUT
@@ -939,7 +942,7 @@ renderers.about = () => {
     <h2>Run details</h2>
     <dl class="kv"><dt>Last refresh</dt><dd>${esc(when)}</dd>
     <dt>API calls</dt><dd>${((m?.http?.requests || 0) + (em?.http?.requests || 0)).toLocaleString()}</dd></dl>
-    <p class="small muted">General information only, not financial advice.</p></div>`;
+    <p class="small muted">General information only${m ? ', not financial advice' : ', not a recommendation for your circumstances'}.</p></div>`;
 };
 
 // ---------- PRODUCT DRAWER

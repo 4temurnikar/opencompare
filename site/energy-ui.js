@@ -102,13 +102,13 @@ export function setupEnergy(ctx) {
 
       <section class="section" id="sec-about">
         <h2 class="section-title">About</h2>
-        <p class="section-lede">OpenCompare is independent. It isn't owned by or affiliated with any retailer or bank, and nobody can pay to change where they appear.</p>
+        <p class="section-lede">OpenCompare is independent. It isn't owned by or affiliated with any ${ctx.banking ? 'energy retailer or bank' : 'energy retailer'}, and nobody can pay to change where they appear.</p>
         <div class="faq">
           <details><summary>Where does the data come from?</summary><p>From the generic plan data every retailer publishes under the Consumer Data Right, served by the Australian Energy Regulator's Energy Made Easy service. We don't use paid feeds or commissions.</p></details>
           <details><summary>How are the costs worked out?</summary><p>For your usage we add up daily supply charges, usage rates (including stepped and time-of-use rates, using a typical household pattern), ongoing fees and guaranteed discounts, then add GST and subtract any solar feed-in credit. Conditional discounts, like paying on time, are only included if you tick the box.</p></details>
           <details><summary>Why might my bill be different?</summary><p>Your real usage pattern, meter type, concessions and the retailer's terms all affect the bill. Use the estimate to shortlist, then check the plan's fact sheet (Basic Plan Information Document) before switching.</p></details>
           <details><summary>How often is it updated?</summary><p>Every morning. The time of the latest update is shown at the top of every page.</p></details>
-          <details><summary>Is this financial advice?</summary><p>No. It's general information to help you compare published plans, and doesn't take your circumstances into account.</p></details>
+          <details><summary>Should I switch based on this?</summary><p>Use it to shortlist. It's general information based on each retailer's published prices and the usage you enter, not a recommendation for your circumstances. Before switching, read the plan's fact sheet and compare it with your current bill, which also tells you whether your retailer has a better offer for you.</p></details>
         </div>
         <p class="section-foot"><a class="btn-ghost" href="#methodology">Read the full methodology</a></p>
       </section>`;
