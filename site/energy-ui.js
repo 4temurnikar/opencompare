@@ -90,13 +90,13 @@ export function setupEnergy(ctx) {
         <h2 class="section-title">How good is the published data?</h2>
         <p class="section-lede">Retailers must keep their published plan data accurate. Each morning we check it against the Consumer Data Standards, test the links, and compare prices with the retailer's own plan fact sheets.</p>
         <div class="stat-grid">
-          <div class="bigstat accent"><span class="bs-n">${(T.errors + T.warnings).toLocaleString('en-AU')}</span><span class="bs-l">problems found this morning across ${T.bs.filter((b) => b.errors + b.warnings).length} of ${T.bs.length} retailers</span></div>
+          <div class="bigstat accent"><span class="bs-n">${T.levels[1] + T.levels[2]}</span><span class="bs-l">critical or major findings this morning${T.findings ? `, plus ${T.levels[3] + T.levels[4]} moderate or minor and ${T.levels[5]} cosmetic, across ${T.withFindings} of ${T.bs.length} retailers` : ''}</span></div>
           <div class="bigstat"><span class="bs-n">${T.std.checked ? pctOf(T.std.checked - T.std.withIssues, T.std.checked) : '—'}</span><span class="bs-l">of plans meet the data standard with no issues</span></div>
           <div class="bigstat"><span class="bs-n">${T.hasWeb ? pctOf(T.web.ratesFound, T.web.ratesChecked) : '—'}</span><span class="bs-l">of prices checked also appear on the retailer's fact sheet${T.hasWeb ? ` (${T.web.ratesFound} of ${T.web.ratesChecked})` : ''}</span></div>
           <div class="bigstat"><span class="bs-n">${T.hasWeb ? T.web.linksBroken : '—'}</span><span class="bs-l">broken plan links in today's sample</span></div>
           <div class="bigstat"><span class="bs-n">${m.feedsOk}<small>/${m.feeds}</small></span><span class="bs-l">retailer feeds responding</span></div>
         </div>
-        ${T.top.length ? `<h3 class="sub-title">Most common problems</h3><ul class="issue-rows">${T.top.slice(0, 5).map((i) => `<li><span>${sevBadge(i.severity)} ${esc(i.label)}</span><span class="muted">${i.brands} retailer${i.brands > 1 ? 's' : ''}, ${i.count.toLocaleString('en-AU')} instance${i.count > 1 ? 's' : ''}</span></li>`).join('')}</ul>` : ''}
+        ${T.top.length ? `<h3 class="sub-title">Most serious findings</h3><ul class="issue-rows">${T.top.slice(0, 5).map((i) => `<li><span>${sevBadge(i.level)} ${esc(i.label)}${i.field ? ` <code class="small">${esc(i.field.split('.').slice(-2).join('.'))}</code>` : ''}</span><span class="muted">${i.brands} retailer${i.brands > 1 ? 's' : ''}, ${i.plans.toLocaleString('en-AU')} plan${i.plans === 1 ? '' : 's'}</span></li>`).join('')}</ul>` : ''}
         <p class="section-foot"><a class="btn-ghost" href="#data-quality">Open the full data-quality report</a></p>
       </section>
 
@@ -339,7 +339,7 @@ export function setupEnergy(ctx) {
         { key: 'elec', label: 'Electricity', n: true },
         { key: 'gas', label: 'Gas', n: true },
         { key: 'states', label: 'States', fmt: (r) => esc(r.states.join(', ')), sort: (r) => r.states.length },
-        { key: 'probs', label: 'Data problems', n: true, fmt: (r) => `${r.q.errors ? `<span class="sev-n err">${r.q.errors}</span>` : ''}${r.q.warnings ? `<span class="sev-n warn">${r.q.warnings}</span>` : ''}${!r.q.errors && !r.q.warnings ? '<span class="status-ok">None</span>' : ''}`, sort: (r) => (r.q.errors || 0) * 1000 + (r.q.warnings || 0) },
+        { key: 'probs', label: 'Data findings by severity', n: true, fmt: (r) => ctx.levelChips(r.q), sort: (r) => { const L = r.q.levels || {}; return (L[1] || 0) * 1e8 + (L[2] || 0) * 1e6 + (L[3] || 0) * 1e4 + (L[4] || 0) * 100 + (L[5] || 0); } },
       ],
       rows,
       { sort: 'name', dir: 'asc' },

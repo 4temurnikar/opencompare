@@ -73,7 +73,7 @@ async function load() {
       ratesByKey.get(r.k).push(r);
     }
   }
-  if (EN) energy = setupEnergy({ $, esc, money, table, bindFilters, sevBadge, pctOf, dqTotals, DATA, renderers, openDrawer, go, openBrandReport, EN, banking: !!D.meta });
+  if (EN) energy = setupEnergy({ $, esc, money, table, bindFilters, sevBadge, pctOf, dqTotals, DATA, renderers, openDrawer, go, openBrandReport, EN, banking: !!D.meta, levelChips });
   // Footer wording follows the sectors that are published
   if (D.meta) $('#foot-note').textContent = `Prices and rates are as published by each provider through the Consumer Data Right and may differ from what you're offered.${EN ? ' Energy cost estimates are based on the usage you enter and include GST.' : ''} This is general information only, not financial advice. Check the provider's fact sheet or product disclosure before deciding.`;
   const at = new Date((D.meta || EN.meta).generatedAt);
@@ -289,17 +289,45 @@ function dqTotals(src = D.quality) {
   const byCode = {};
   for (const b of bs)
     for (const g of b.issues || []) {
-      if (g.severity === 'info') continue;
-      const e = (byCode[g.code] ??= { code: g.code, label: g.label, category: g.category, severity: g.severity, count: 0, brands: 0 });
+      const level = levelOfGroup(g);
+      if (!level) continue;
+      const k = `${g.code}|${g.field || ''}|${level}`;
+      const e = (byCode[k] ??= { code: g.code, field: g.field || null, label: g.label, category: g.category, severity: g.severity, level, count: 0, plans: 0, brands: 0 });
       e.count += g.count;
+      e.plans += g.products || 0;
       e.brands++;
     }
-  const top = Object.values(byCode).sort((a, b) => b.brands - a.brands || b.count - a.count);
-  return { Q, bs, web, std, errors: sum((b) => b.errors), warnings: sum((b) => b.warnings), top, hasWeb: web.urls > 0 || web.ratesChecked > 0 || web.pagesRead + web.pdfsRead > 0 };
+  const top = Object.values(byCode).sort((a, b) => a.level - b.level || b.brands - a.brands || b.count - a.count);
+  const levels = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  for (const b of bs) for (const [l, n] of Object.entries(levelsOf(b))) levels[l] += n;
+  const findings = Object.values(levels).reduce((a, n) => a + n, 0);
+  return { Q, bs, web, std, levels, findings, withFindings: bs.filter((b) => Object.values(levelsOf(b)).some(Boolean)).length, affected: sum((b) => b.affected), errors: sum((b) => b.errors), warnings: sum((b) => b.warnings), top, hasWeb: web.urls > 0 || web.ratesChecked > 0 || web.pagesRead + web.pdfsRead > 0 };
 }
 const SEV = { error: 'Error', warning: 'Warning', info: 'Note' };
 const plural = (n, one, many = one + 's') => `${n.toLocaleString('en-AU')} ${n === 1 ? one : many}`;
-const sevBadge = (s) => `<span class="sev sev-${esc(s)}">${SEV[s] || esc(s)}</span>`;
+const DEFAULT_LEVELS = {
+  1: { help: 'The published data is wrong in a way that would mislead someone about the price.' },
+  2: { help: 'Materially affects comparisons or can’t be used, such as a broken link or a feed that’s down.' },
+  3: { help: 'Breaks the standard in a way that can trip up software reading the data.' },
+  4: { help: 'Breaks the standard but the meaning is still clear.' },
+  5: { help: 'A mandatory piece of descriptive text is missing. Nothing a customer pays is affected.' },
+  0: { help: 'Not a fault: an optional field not provided, a page that blocked our check, or something we couldn’t verify today.' },
+};
+const LEVEL_NAMES = { 1: 'Critical', 2: 'Major', 3: 'Moderate', 4: 'Minor', 5: 'Cosmetic', 0: 'Note' };
+const SEV_TO_LEVEL = { error: 2, warning: 3, info: 0 };
+// A badge for a severity level (1 critical … 5 cosmetic, 0 note); older data passes error/warning/info
+const sevBadge = (s) => {
+  const l = typeof s === 'number' ? s : SEV_TO_LEVEL[s] ?? 3;
+  return `<span class="sev sev-l${l}">${l ? `${l} · ` : ''}${LEVEL_NAMES[l]}</span>`;
+};
+const levelOfGroup = (g) => g.level ?? SEV_TO_LEVEL[g.severity] ?? 3;
+// Findings per level for a provider; older data (no levels) is mapped from error/warning counts
+const levelsOf = (x) => x?.levels || { 1: 0, 2: x?.errors || 0, 3: x?.warnings || 0, 4: 0, 5: 0 };
+const levelChips = (x, none = '<span class="status-ok">None</span>') => {
+  const L = levelsOf(x);
+  const chips = [1, 2, 3, 4, 5].filter((l) => L[l]).map((l) => `<span class="sev-n l${l}" title="Severity ${l}: ${LEVEL_NAMES[l]}">${L[l]} ${LEVEL_NAMES[l].toLowerCase()}</span>`).join('');
+  return chips || none;
+};
 
 // ---------- HOME (one long page; the menu scrolls to its sections)
 const BEST = [
@@ -818,15 +846,16 @@ function renderQuality(el, Q, sector, multi) {
     <div id="dq-table"></div>
     <div class="dq-help">
       <h3>How to read this</h3>
-      <p>${sevBadge('error')} The data breaks the standard or can't be used, such as a rate in the wrong format or a broken link.</p>
-      <p>${sevBadge('warning')} Probably wrong or missing, such as a published ${E ? 'price that doesn\'t appear on the plan\'s fact sheet' : 'rate that doesn\'t appear anywhere on the bank\'s own pages for that product'}.</p>
-      <p>${sevBadge('info')} Worth knowing but not a fault, such as a page that blocked our check or an older API version.</p>
+      <p>Each finding is one kind of problem in one field for one ${word.holder}. A problem repeated across many ${word.items} counts once, with the number of ${word.items} it affects shown alongside. Severity runs from 1 (critical) to 5 (cosmetic):</p>
+      <div class="level-legend">${[1, 2, 3, 4, 5, 0].map((l) => `<p>${sevBadge(l)} ${esc((T.Q.levels || DEFAULT_LEVELS)[l]?.help || '')}</p>`).join('')}</div>
+      <p class="muted small">Breaking the data standard isn't the same as breaking the law, and most findings here don't change what anyone pays. ${E ? 'Energy plan data is published through the Consumer Data Right by the Australian Energy Regulator (and Victoria\'s energy department) from what retailers submit, so a problem shared by many retailers may come from how the data is published rather than from each retailer.' : ''}</p>
       <p class="muted small">"Not found" means the exact figure didn't appear on the pages or PDFs linked from that ${word.item}. Pages that load rates with JavaScript, or round them differently, can cause this, so check the source before concluding a figure is wrong.</p>
     </div>`;
   const rows = brands.map((b) => {
     const x = q.get(b.brandId) || {};
     const cat = x.byCategory || {};
-    return { ...b, x, problems: (x.errors || 0) + (x.warnings || 0), std: cat.standards || 0, acc: cat.accuracy || 0, links: cat.links || 0, webPct: x.web?.ratesChecked ? x.web.ratesFound / x.web.ratesChecked : null };
+    const L = levelsOf(x);
+    return { ...b, x, problems: L[1] * 1e8 + L[2] * 1e6 + L[3] * 1e4 + L[4] * 100 + L[5], std: cat.standards || 0, acc: cat.accuracy || 0, links: cat.links || 0, webPct: x.web?.ratesChecked ? x.web.ratesFound / x.web.ratesChecked : null };
   });
   const cnt = (n) => (n ? `<b>${n.toLocaleString('en-AU')}</b>` : '<span class="muted">0</span>');
   table(
@@ -837,7 +866,7 @@ function renderQuality(el, Q, sector, multi) {
       { key: 'acc', label: 'Accuracy', n: true, fmt: (b) => cnt(b.acc) },
       { key: 'links', label: 'Links', n: true, fmt: (b) => cnt(b.links) },
       { key: 'webPct', label: E ? 'Prices on fact sheets' : 'Rates on website', n: true, fmt: (b) => (b.webPct === null ? '<span class="muted">not checked</span>' : `${pctOf(b.x.web.ratesFound, b.x.web.ratesChecked)} <span class="small muted">(${b.x.web.ratesFound}/${b.x.web.ratesChecked})</span>`), defaultDir: 'asc' },
-      { key: 'problems', label: 'Problems', n: true, fmt: (b) => `${b.x.errors ? `<span class="sev-n err">${b.x.errors}</span>` : ''}${b.x.warnings ? `<span class="sev-n warn">${b.x.warnings}</span>` : ''}${!b.problems ? '<span class="status-ok">None</span>' : ''}`, defaultSort: true, defaultDir: 'desc' },
+      { key: 'problems', label: 'Findings by severity', n: true, fmt: (b) => levelChips(b.x), defaultSort: true, defaultDir: 'desc' },
     ],
     rows,
     { sort: 'problems', dir: 'desc' },
@@ -872,8 +901,8 @@ async function openBrandReport(brandId, sector = 'banking') {
       if (!groups.length) return '';
       return `<h4>${esc(c.label)}</h4>${groups
         .map((g) => {
-          const items = f.issues.filter((i) => i.code === g.code).slice(0, 150);
-          return `<details class="dq-group"><summary>${sevBadge(g.severity)}<span class="g-label">${esc(g.label)}</span><span class="g-count">${g.count.toLocaleString('en-AU')}${g.products ? ` in ${g.products} ${item}${g.products > 1 ? 's' : ''}` : ''}</span></summary>
+          const items = f.issues.filter((i) => (g.gk && i.gk ? i.gk === g.gk : i.code === g.code)).slice(0, 150);
+          return `<details class="dq-group"><summary>${sevBadge(levelOfGroup(g))}<span class="g-label">${esc(g.label)}${g.field ? `<span class="g-field">${esc(g.field)}</span>` : ''}</span><span class="g-count">${g.products ? plural(g.products, item) : plural(g.count, 'instance')}</span></summary>
             <div class="table-wrap"><table><thead><tr><th>${item === 'plan' ? 'Plan' : 'Product'}</th><th>Field</th><th>Value</th><th>Detail</th></tr></thead><tbody>${items
               .map((i) => `<tr><td>${esc(i.product || '\u2014')}</td><td>${i.field ? `<code>${esc(i.field)}</code>` : ''}</td><td>${i.value !== null && i.value !== undefined ? cell(i.value) : ''}</td><td class="small">${typeof i.detail === 'string' && /^https?:/.test(i.detail) ? link(i.detail) : esc(i.detail || '')}</td></tr>`)
               .join('')}</tbody></table></div>${g.count > items.length ? `<p class="small muted">Showing ${items.length} of ${g.count}.</p>` : ''}</details>`;
@@ -887,7 +916,8 @@ async function openBrandReport(brandId, sector = 'banking') {
   body.innerHTML = `
     <h2 id="drawer-title">${esc(b?.brand || x?.brand || '')}</h2>
     <div class="muted">${esc(b?.baseUri || '')}</div>
-    <div class="dq-chips">${x?.errors ? `<span class="sev-n err">${plural(x.errors, 'error')}</span>` : ''}${x?.warnings ? `<span class="sev-n warn">${plural(x.warnings, 'warning')}</span>` : ''}${x?.infos ? `<span class="sev-n note">${plural(x.infos, 'note')}</span>` : ''}${!x?.total ? '<span class="status-ok">No issues found</span>' : ''}</div>
+    <div class="dq-chips">${[1, 2, 3, 4, 5].filter((l) => levelsOf(x)[l]).map((l) => `<span class="sev-n l${l}">${plural(levelsOf(x)[l], `${LEVEL_NAMES[l].toLowerCase()} finding`)}</span>`).join('')}${x?.infos ? `<span class="sev-n l0">${plural(x.infos, 'note')}</span>` : ''}${!Object.values(levelsOf(x)).some(Boolean) && !x?.infos ? '<span class="status-ok">No issues found</span>' : ''}</div>
+    ${x?.findings !== undefined ? `<p class="small muted">${plural(x.findings, 'finding')}${x.affected ? `, affecting ${plural(x.affected, item)}` : ''}. A problem repeated across ${item}s counts once.</p>` : ''}
     <dl class="kv">
       <dt>Standards</dt><dd>${x?.standards ? `${x.standards.checked - x.standards.withIssues} of ${x.standards.checked} ${sector === 'energy' ? 'plans' : 'products'} with no issues` : '\u2014'}</dd>
       ${sector === 'energy' ? `<dt>Website</dt><dd>${w?.website ? link(w.website) : 'Not identified'}${w?.website ? ` · fact sheets found for ${(w.plansCovered || 0).toLocaleString('en-AU')} of ${(x?.plans || 0).toLocaleString('en-AU')} plans so far` : ''}</dd>` : ''}
