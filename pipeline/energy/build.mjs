@@ -13,6 +13,7 @@ import { resolveWebsite, crawlRetailer } from './factsheets.mjs';
 import { failure } from '../consistency.mjs';
 import { summarise, fieldKey, CATEGORIES, LEVELS } from '../dq.mjs';
 import { DEFAULTS, GST } from '../../site/energy-cost.js';
+import { recordDay, historySummary } from './archive.mjs';
 
 const E = config.energy;
 const OUT = E.outDir;
@@ -398,6 +399,21 @@ async function main() {
   const serious = quality.filter((q) => q.levels[1] + q.levels[2]).sort((a, b) => b.levels[1] - a.levels[1] || b.levels[2] - a.levels[2]);
   if (serious.length) insights.push({ id: 'dq', group: 'Data quality', headline: `${serious.length} of ${quality.length} retailers have critical or major problems in their published plans`, detail: `For example ${serious.slice(0, 3).map((q) => `${q.brand} (${q.levels[1] + q.levels[2]})`).join(', ')}. See the data-quality report for details.` });
 
+  // Price history: today's prices into the private archive (never fails the run)
+  let history = null;
+  if (E.archive.enabled) {
+    if ((filter.length || E.baseOverride) && process.env.CDR_ARCHIVE_TEST !== '1') log('Price history skipped: only part of the market was read (brand filter or test feeds)');
+    else
+      try {
+        const listed = new Map(items.map((it) => [it.planId, it._base]));
+        const feedOk = new Map(feedResults.map((f) => [f.base, f.ok]));
+        await recordDay({ dir: E.archive.dir, plans, listed, feedOk, log, ...(process.env.CDR_ARCHIVE_DATE ? { date: process.env.CDR_ARCHIVE_DATE } : {}) });
+        history = await historySummary(E.archive.dir);
+      } catch (e) {
+        console.log(`::error::Price history not updated: ${e.message}`);
+      }
+  }
+
   await Promise.all([
     writeFile(join(OUT, 'boards.json'), JSON.stringify(boards)),
     writeFile(join(OUT, 'insights.json'), JSON.stringify(insights)),
@@ -419,6 +435,7 @@ async function main() {
         gas: plans.filter((p) => p.g).length,
         detail: counts,
         states: stateMeta,
+        history,
         defaults: DEFAULTS,
         cds: ENERGY_CDS,
         http: stats,
