@@ -94,6 +94,12 @@ export const config = {
       sample: Number(process.env.CDR_ENERGY_FS_SAMPLE || 15),
     },
     outDir: process.env.CDR_ENERGY_OUT_DIR || new URL('../site/data/energy/', import.meta.url).pathname,
+    // Price history archive (private). Off unless CDR_ARCHIVE=1; the daily job turns it on once the
+    // private archive repository has been cloned into this folder.
+    archive: {
+      enabled: process.env.CDR_ARCHIVE === '1',
+      dir: process.env.CDR_ARCHIVE_DIR || new URL('../archive/energy/', import.meta.url).pathname,
+    },
   },
 
   outDir: process.env.CDR_OUT_DIR || (bankingMode === 'public' ? siteData : new URL('../private-data/banking/', import.meta.url).pathname),
