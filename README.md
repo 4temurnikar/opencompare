@@ -227,6 +227,24 @@ These are the data holders' problems, not the pipeline's. The daily run retries 
 
 CBA - CommBiz and HSBC respond but publish no products (flagged as `NO_PRODUCTS`).
 
+## Price history (energy)
+
+Every run records each plan's prices into a **private** archive repository (`ARCHIVE_REPO` variable,
+`ARCHIVE_TOKEN` secret), cloned into `archive/energy/` and pushed back after the run. The code is in
+`pipeline/energy/archive.mjs`; the format is described in the archive's own README.
+
+- One line per change per day (`events/YYYY/YYYY-MM-DD.jsonl`): new, price, ver, meta, gone, back.
+- Plans are tracked by plan ID without the version suffix, so a new version is a change, not a new plan.
+- Safeguards: prices compared in a canonical form (rounding, order and wording ignored); nothing
+  recorded for plans whose details weren't read; withdrawals only after two complete reads of the
+  retailer's feed without the plan; undated price changes marked `unconfirmed`; re-running a day
+  replaces it; the whole log is replayed before writing and must match; a missing state with an
+  existing log stops the run rather than starting over; more than a quarter of plans changing in a day
+  (outside the 1 July reset) flags the run for review.
+- `npm test` runs the archive's tests; the daily job runs them before touching the archive and skips
+  the archive for the day if they fail.
+- Only a summary (since when, plans tracked, last 30 days' changes) is published, on the Methodology page.
+
 ## Daily job notes
 
 The commit step never merges data: it sets the fresh data aside, syncs to the latest `main`, puts the data back and pushes (retrying on races). Start manual runs with **Run workflow**, not **Re-run jobs**, because a re-run reuses the workflow file from the original commit.
