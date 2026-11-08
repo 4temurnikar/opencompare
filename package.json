@@ -15,7 +15,8 @@
     "refresh:banking": "node pipeline/build.mjs",
     "refresh:energy": "node pipeline/energy/build.mjs",
     "mock:energy": "node scripts/mock-energy.mjs",
-    "refresh:energy:mock": "CDR_ENERGY_BASE=http://localhost:8788/eme CDR_ENERGY_RETAILERS=scripts/mock-energy-retailers.json node pipeline/energy/build.mjs"
+    "refresh:energy:mock": "CDR_ENERGY_BASE=http://localhost:8788/eme CDR_ENERGY_RETAILERS=scripts/mock-energy-retailers.json node pipeline/energy/build.mjs",
+    "test": "node scripts/test-archive.mjs"
   },
   "dependencies": {
     "pdfjs-dist": "4.10.38"
