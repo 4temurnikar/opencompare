@@ -974,7 +974,8 @@ renderers.about = () => {
     </ul>` : ''}
     <h2>Run details</h2>
     <dl class="kv"><dt>Last refresh</dt><dd>${esc(when)}</dd>
-    <dt>API calls</dt><dd>${((m?.http?.requests || 0) + (em?.http?.requests || 0)).toLocaleString()}</dd></dl>
+    <dt>API calls</dt><dd>${((m?.http?.requests || 0) + (em?.http?.requests || 0)).toLocaleString()}</dd>
+    ${em?.history ? `<dt>Price history</dt><dd>Recorded daily since ${esc(new Date(em.history.since + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }))}: ${em.history.plans.toLocaleString('en-AU')} plans tracked; in the last 30 days ${em.history.last30.price.toLocaleString('en-AU')} price changes, ${em.history.last30.new.toLocaleString('en-AU')} new plans and ${em.history.last30.gone.toLocaleString('en-AU')} withdrawn</dd>` : ''}</dl>
     <p class="small muted">General information only${m ? ', not financial advice' : ', not a recommendation for your circumstances'}.</p></div>`;
 };
 
