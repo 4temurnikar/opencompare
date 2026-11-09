@@ -1,0 +1,3 @@
+User-agent: *
+Disallow: /opencompare/brief/preview/
+Sitemap: https://4temurnikar.github.io/opencompare/sitemap.xml
