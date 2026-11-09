@@ -245,6 +245,23 @@ Every run records each plan's prices into a **private** archive repository (`ARC
   the archive for the day if they fail.
 - Only a summary (since when, plans tracked, last 30 days' changes) is published, on the Methodology page.
 
+## Weekly brief, email sign-up and privacy page
+
+- `pipeline/energy/brief.mjs` writes the weekly brief from the price history every Monday: price
+  changes for a typical home (worked out with the site's own calculator, from each plan's prices at the
+  start and end of the week), new and withdrawn plans, changes by retailer, the cheapest plan on each
+  state's main network, and data-quality totals. All text comes from fixed templates; undated
+  ("unconfirmed") changes, business plans and demand tariffs are counted but kept out of the headline
+  numbers. `npm run test:brief` runs its tests; the Monday run runs them first.
+- New briefs are drafted as an unlisted preview at `brief/preview/<date>/` (not linked, not in the
+  sitemap or RSS, marked noindex). Publish with **Actions → Publish weekly brief → Run workflow**. Set
+  the repository variable `BRIEF_AUTO_PUBLISH` to `1` to publish without a preview.
+- Published briefs: `brief/<date>/`, listed at `brief/` and in `brief/rss.xml`; the email provider sends
+  each new RSS item to subscribers.
+- `pipeline/site-pages.mjs` builds the privacy page, brief index, RSS feed, `sitemap.xml` and
+  `robots.txt` from `site/site.json` (site address, operator, contact email, email provider). The sign-up
+  box appears only once `newsletter.enabled` is true and a contact email and provider are set.
+
 ## Daily job notes
 
 The commit step never merges data: it sets the fresh data aside, syncs to the latest `main`, puts the data back and pushes (retrying on races). Start manual runs with **Run workflow**, not **Re-run jobs**, because a re-run reuses the workflow file from the original commit.
