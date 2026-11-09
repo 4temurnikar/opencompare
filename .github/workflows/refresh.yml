@@ -69,7 +69,19 @@ jobs:
         run: |
           # Self-test first: if the archive code misbehaves, skip the archive today rather than record bad history
           node scripts/test-archive.mjs
-          git clone --depth 1 "https://x-access-token:${ARCHIVE_TOKEN}@github.com/${ARCHIVE_REPO}.git" archive/energy
+          # Check the token before cloning, so a failure says exactly what's wrong
+          api() { curl -s -o "$RUNNER_TEMP/api.json" -w '%{http_code}' -H "Authorization: Bearer ${ARCHIVE_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/$1"; }
+          REPO="$(echo "$ARCHIVE_REPO" | tr -d '[:space:]')"
+          echo "Archive repository: '${REPO}'"
+          code=$(api "repos/${REPO}")
+          if [ "$code" = "401" ]; then echo "::error::ARCHIVE_TOKEN is not a valid token (expired, revoked or pasted incorrectly)."; exit 1; fi
+          if [ "$code" != "200" ]; then
+            echo "::error::The token can't see ${REPO} (HTTP ${code}). Repositories this token can see:"
+            api "user/repos?per_page=100&affiliation=owner,collaborator" > /dev/null; grep '"full_name"' "$RUNNER_TEMP/api.json" || echo "  (none)"
+            exit 1
+          fi
+          grep -q '"push": true' "$RUNNER_TEMP/api.json" || echo "::warning::The token can read ${REPO} but may not be able to write to it (set Contents: Read and write)."
+          git clone --depth 1 "https://x-access-token:${ARCHIVE_TOKEN}@github.com/${REPO}.git" archive/energy
           echo "ok=1" >> "$GITHUB_OUTPUT"
 
       - name: Energy plans, insights and data quality
