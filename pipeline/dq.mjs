@@ -72,6 +72,7 @@ const META = {
   E_EXPIRED: ['accuracy', 2],
   E_NO_GEOGRAPHY: ['accuracy', 2],
   E_PRICE_IMPLAUSIBLE: ['accuracy', 3],
+  E_DEMAND_NOT_PUBLISHED: ['accuracy', 3],
   E_NO_SUPPLY: ['accuracy', 3],
   E_BLOCK_NO_PERIOD: ['accuracy', 4],
   LINK_BROKEN: ['links', 2],
