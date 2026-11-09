@@ -170,6 +170,14 @@ export function annualCost(plan, fuel, o = {}) {
 }
 
 // Best retailer feed-in rate in $/kWh (single tariffs, or the average of time-varying ones)
+// Solar panels export mostly around the middle of the day, so a feed-in rate that only applies at
+// other times (e.g. a high evening "happy hour" rate) says little about what a solar home earns
+const coversMidday = (w) => {
+  const s = hourOf(w.s);
+  const e = hourOf(w.e, true);
+  return s <= e ? s <= 12 && e > 12 : s <= 12 || e > 12;
+};
+/** The retailer feed-in rate a typical solar home earns ($/kWh excl. GST), or null */
 export function bestFit(c) {
   let best = null;
   for (const f of c?.fit || []) {
@@ -177,7 +185,8 @@ export function bestFit(c) {
     let v = null;
     if (f.kind === 'single' && f.blocks?.length) v = f.blocks[0].p;
     else if (f.tv?.length) {
-      const vals = f.tv.map((t) => t.blocks?.[0]?.p).filter((x) => x !== undefined);
+      // time-varying: only the rate(s) in force at midday count
+      const vals = f.tv.filter((t) => !t.win?.length || t.win.some(coversMidday)).map((t) => t.blocks?.[0]?.p).filter((x) => x !== undefined && x !== null);
       if (vals.length) v = vals.reduce((a, b) => a + b, 0) / vals.length;
     }
     if (v !== null && (best === null || v > best)) best = v;
@@ -185,7 +194,6 @@ export function bestFit(c) {
   return best;
 }
 
-// Headline prices for display, in cents including GST
 export function headline(c) {
   if (!c?.tp?.length) return null;
   const p = c.tp.find((x) => x.kind !== 'demand') || c.tp[0];

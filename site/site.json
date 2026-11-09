@@ -1,0 +1,16 @@
+{
+  "siteUrl": "https://4temurnikar.github.io/opencompare",
+  "operator": "",
+  "abn": "",
+  "contactEmail": "",
+  "newsletter": {
+    "enabled": false,
+    "provider": "",
+    "providerPrivacyUrl": "",
+    "mode": "form",
+    "action": "",
+    "emailField": "email",
+    "hidden": {},
+    "link": ""
+  }
+}

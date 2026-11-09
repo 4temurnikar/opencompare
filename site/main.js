@@ -42,13 +42,19 @@ const get = (f) => fetch(`${DATA}${f}`, { cache: 'no-cache' }).then((r) => (r.ok
 let EN = null; // energy data
 let energy = null; // energy UI
 const BANKING_RENDERERS = new Set(['home', 'deposits', 'cards', 'all', 'rankings']);
+let SITE_CFG = null;
+let BRIEF = null;
 async function load() {
   const files = ['meta', 'insights', 'boards', 'products', 'rates', 'brands', 'quality', 'changes'];
   const efiles = ['meta', 'insights', 'boards', 'quality', 'changes', 'retailers'];
   // Banking files are only requested when banking is published (meta.json present)
   const bankingP = get('meta.json').then(async (meta) => (meta ? [meta, ...(await Promise.all(files.slice(1).map((f) => get(`${f}.json`))))] : files.map(() => null)));
   const energyP = get('energy/meta.json').then(async (meta) => (meta ? [meta, ...(await Promise.all(efiles.slice(1).map((f) => get(`energy/${f}.json`))))] : null));
-  const [res, eres] = await Promise.all([bankingP, energyP.then((x) => x || [null])]);
+  // Site settings (email sign-up) and the weekly brief's list, both optional
+  const extrasP = Promise.all([fetch('site.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null), get('brief/index.json')]);
+  const [res, eres, [site, briefs]] = await Promise.all([bankingP, energyP.then((x) => x || [null]), extrasP]);
+  SITE_CFG = site;
+  BRIEF = (briefs?.briefs || []).filter((b) => b.published).sort((a, b) => (a.date < b.date ? 1 : -1))[0] || null;
   files.forEach((f, i) => (D[f] = res[i]));
   if (eres[0]) {
     EN = Object.fromEntries(efiles.map((f, i) => [f, eres[i]]));
@@ -73,7 +79,7 @@ async function load() {
       ratesByKey.get(r.k).push(r);
     }
   }
-  if (EN) energy = setupEnergy({ $, esc, money, table, bindFilters, sevBadge, pctOf, dqTotals, DATA, renderers, openDrawer, go, openBrandReport, EN, banking: !!D.meta, levelChips });
+  if (EN) energy = setupEnergy({ $, esc, money, table, bindFilters, sevBadge, pctOf, dqTotals, DATA, renderers, openDrawer, go, openBrandReport, EN, banking: !!D.meta, levelChips, site: () => SITE_CFG, brief: () => BRIEF });
   // Footer wording follows the sectors that are published
   if (D.meta) $('#foot-note').textContent = `Prices and rates are as published by each provider through the Consumer Data Right and may differ from what you're offered.${EN ? ' Energy cost estimates are based on the usage you enter and include GST.' : ''} This is general information only, not financial advice. Check the provider's fact sheet or product disclosure before deciding.`;
   const at = new Date((D.meta || EN.meta).generatedAt);

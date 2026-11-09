@@ -369,3 +369,29 @@ td.rate { font-weight: 700 !important; letter-spacing: -0.02em; }
 .textbtn.small { font-size: 13px; }
 @media (max-width: 720px) { .field input[type='text'] { width: 100%; } }
 td.rate { font-variant-numeric: lining-nums proportional-nums; }
+
+/* ---- static pages: weekly brief, privacy */
+.static-page { padding-top: 28px; padding-bottom: 48px; }
+.prose { max-width: 860px; }
+.prose h1 { font-size: clamp(28px, 3.4vw, 40px); line-height: 1.15; letter-spacing: -0.01em; margin: 6px 0 0; }
+.prose h2 { font-size: 21px; margin: 36px 0 10px; }
+.prose h3 { font-size: 16px; margin: 22px 0 8px; color: var(--ink-2); }
+.prose p { max-width: 70ch; }
+.prose .table-wrap { overflow-x: auto; }
+.prose td.num, .prose th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.kicker { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); }
+.preview-banner { background: var(--warn-soft); color: var(--warn); border-radius: var(--radius); padding: 10px 14px; font-size: 14px; }
+.brief-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 24px 0 8px; }
+.brief-stats .bs-v { font-size: 30px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.brief-stats .bs-l { font-size: 13px; color: var(--ink-2); }
+@media (max-width: 640px) { .brief-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.brief-list { list-style: none; padding: 0; margin: 24px 0; display: grid; gap: 14px; }
+.brief-list a { text-decoration: none; color: var(--ink); display: grid; gap: 2px; }
+.brief-list .bl-date { font-size: 13px; color: var(--ink-2); }
+.brief-list .bl-title { font-size: 18px; font-weight: 600; }
+.brief-list p { margin: 4px 0 0; }
+.signup { margin: 32px 0; }
+.signup h2 { margin-top: 0; font-size: 19px; }
+.signup-form { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.signup-form input[type='email'] { flex: 1 1 240px; min-width: 0; font: inherit; padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface); color: var(--ink); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }

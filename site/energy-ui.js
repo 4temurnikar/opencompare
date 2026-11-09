@@ -1,4 +1,5 @@
 // OpenCompare: energy pages (home, plan finder, retailers, insights). Uses the shared cost model.
+import { signupBox } from './signup.js';
 import { annualCost, headline, availableAt, postcodeState, DEFAULTS, GST } from './energy-cost.js';
 
 const STATE_NAME = { NSW: 'NSW', VIC: 'Victoria', QLD: 'Queensland', SA: 'South Australia', ACT: 'ACT', TAS: 'Tasmania', WA: 'WA', NT: 'NT', OTHER: 'Other' };
@@ -110,6 +111,17 @@ export function setupEnergy(ctx) {
         ${T.top.length ? `<h3 class="sub-title">Most serious findings</h3><ul class="issue-rows">${T.top.slice(0, 5).map((i) => `<li><span>${sevBadge(i.level)} ${esc(i.label)}${i.field ? ` <code class="small">${esc(i.field.split('.').slice(-2).join('.'))}</code>` : ''}</span><span class="muted">${i.brands} retailer${i.brands > 1 ? 's' : ''}, ${i.plans.toLocaleString('en-AU')} plan${i.plans === 1 ? '' : 's'}</span></li>`).join('')}</ul>` : ''}
         <p class="section-foot"><a class="btn-ghost" href="#data-quality">Open the full data-quality report</a></p>
       </section>
+
+      ${(() => {
+        const b = ctx.brief?.();
+        const box = signupBox(ctx.site?.(), '');
+        if (!b && !box) return '';
+        return `<section class="section" id="sec-brief">
+        <h2 class="section-title">This week in energy prices</h2>
+        ${b ? `<p class="section-lede"><a href="brief/${esc(b.date)}/"><b>${esc(b.title)}</b></a></p><p>${esc(b.lead)}</p><p class="section-foot"><a class="btn-ghost" href="brief/${esc(b.date)}/">Read the weekly brief</a> <a class="textbtn" href="brief/">All briefs</a></p>` : ''}
+        ${box}
+      </section>`;
+      })()}
 
       <section class="section" id="sec-about">
         <h2 class="section-title">About</h2>
@@ -248,7 +260,7 @@ export function setupEnergy(ctx) {
       if (!ef.standing && p.t !== 'MARKET') continue;
       if (ef.retailer && p.b !== ef.retailer) continue;
       const isTou = c.tp.some((t) => t.kind === 'tou');
-      const isDemand = c.tp.some((t) => t.kind === 'demand');
+      const isDemand = c.tp.some((t) => t.kind === 'demand') || (fuel === 'E' && /\bdemand\b/i.test(p.n || ''));
       if (fuel === 'E' && ef.tariff === 'single' && isTou) continue;
       if (fuel === 'E' && ef.tariff === 'tou' && !isTou) continue;
       if (isDemand && !ef.demand) continue;
