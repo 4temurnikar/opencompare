@@ -115,7 +115,7 @@ jobs:
           node pipeline/energy/brief.mjs draft
 
       - name: Static pages (privacy, brief index, RSS, sitemap)
-        if: github.event_name != 'push'
+        # Also on code uploads, so these pages are published straight away (the next daily run saves them)
         run: node pipeline/site-pages.mjs
 
       - name: Save price history
