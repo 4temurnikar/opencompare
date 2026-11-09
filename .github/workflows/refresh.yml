@@ -104,6 +104,20 @@ jobs:
           git add -A
           if git diff --cached --quiet; then echo "No banking changes"; else git commit -q -m "Banking data $(date -u +%Y-%m-%d)" && git push -q origin HEAD:main; fi
 
+      - name: Weekly brief (drafted on Mondays)
+        if: github.event_name != 'push' && steps.archive.outputs.ok == '1'
+        continue-on-error: true
+        env:
+          # Set the repository variable BRIEF_AUTO_PUBLISH to 1 to skip the preview and publish straight away
+          BRIEF_AUTO_PUBLISH: ${{ vars.BRIEF_AUTO_PUBLISH }}
+        run: |
+          node scripts/test-brief.mjs
+          node pipeline/energy/brief.mjs draft
+
+      - name: Static pages (privacy, brief index, RSS, sitemap)
+        if: github.event_name != 'push'
+        run: node pipeline/site-pages.mjs
+
       - name: Save price history
         if: github.event_name != 'push' && steps.archive.outputs.ok == '1'
         run: |
@@ -118,15 +132,16 @@ jobs:
         run: |
           git config user.name "cdr-refresh-bot"
           git config user.email "actions@users.noreply.github.com"
-          # The data is fully regenerated each run, so never merge it: set it aside,
-          # sync to the latest repo, put the fresh data back and commit. Retries on races.
-          cp -r site/data "$RUNNER_TEMP/newdata"
+          # Generated files are rebuilt each run, so never merge them: set them aside,
+          # sync to the latest repo, put the fresh copies back and commit. Retries on races.
+          GENERATED="site/data site/brief site/privacy site/sitemap.xml site/robots.txt"
+          tar -cf "$RUNNER_TEMP/generated.tar" $(ls -d $GENERATED 2>/dev/null)
           for i in 1 2 3; do
             git fetch origin main
             git reset --hard origin/main
-            rm -rf site/data
-            cp -r "$RUNNER_TEMP/newdata" site/data
-            git add -A site/data
+            rm -rf $GENERATED
+            tar -xf "$RUNNER_TEMP/generated.tar"
+            git add -A $GENERATED
             if git diff --cached --quiet; then
               echo "No data changes"
               break
