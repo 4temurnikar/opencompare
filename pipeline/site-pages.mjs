@@ -3,6 +3,7 @@
 // its RSS feed (which the email provider reads to send each brief), a sitemap and robots.txt.
 // Settings come from site/site.json. Run: node pipeline/site-pages.mjs
 import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises';
+import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { newsletterReady, signupBox } from '../site/signup.js';
 export { newsletterReady, signupBox };
@@ -18,20 +19,29 @@ export async function siteConfig() {
   return c;
 }
 
-const LOGO = `<svg class="logo" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><defs><clipPath id="logo-left"><circle cx="13" cy="17" r="9.5" /></clipPath></defs><circle cx="21" cy="17" r="9.5" class="logo-lens" clip-path="url(#logo-left)" /><circle cx="13" cy="17" r="9.5" class="logo-ring" /><circle cx="21" cy="17" r="9.5" class="logo-ring" /></svg>`;
+// The header (logo and menu) is copied from the app's own index.html, so every page has the same menu
+const HEADER = readFileSync(new URL('../site/index.html', import.meta.url), 'utf8').match(/<header class="top">[\s\S]*?<\/header>/)[0];
+function header(root, current) {
+  let h = HEADER.replace(/href="#/g, `href="${root}#`).replace(/href="brief\//g, `href="${root}brief/`);
+  if (current === 'brief') h = h.replace(`<a href="${root}brief/">`, `<a href="${root}brief/" aria-current="page">`);
+  // banking appears in the menu only while banking data is published
+  if (existsSync(join(SITE, 'data', 'meta.json'))) h = h.replace('<div class="menu-group" hidden>', '<div class="menu-group">');
+  return h;
+}
+// Opens and closes the menu's drop-downs (the app does this in main.js)
+const MENU_SCRIPT = `<script>
+(() => {
+  const ts = [...document.querySelectorAll('.menu-trigger')];
+  const close = (x) => ts.forEach((t) => { if (t !== x) { t.setAttribute('aria-expanded', 'false'); document.getElementById(t.getAttribute('aria-controls')).hidden = true; } });
+  ts.forEach((t) => t.addEventListener('click', (e) => { e.stopPropagation(); const open = t.getAttribute('aria-expanded') === 'true'; close(t); t.setAttribute('aria-expanded', String(!open)); document.getElementById(t.getAttribute('aria-controls')).hidden = open; }));
+  document.addEventListener('click', (e) => !e.target.closest('.menu-group') && close());
+  document.addEventListener('keydown', (e) => e.key === 'Escape' && close());
+})();
+</script>`;
 
 /** A complete page in the site's style. `root` is the relative path back to the site root, e.g. '../../'. */
 export function page({ c, root, path, title, description, body, noindex = false, current = '' }) {
   const canonical = `${c.siteUrl}/${path}`;
-  const nav = [
-    ['Home', `${root}#home`, ''],
-    ['Electricity', `${root}#electricity`, ''],
-    ['Gas', `${root}#gas`, ''],
-    ['Weekly brief', `${root}brief/`, 'brief'],
-    ['About', `${root}#about`, ''],
-  ]
-    .map(([t, h, k]) => `<a href="${h}"${k && k === current ? ' aria-current="page"' : ''}>${t}</a>`)
-    .join('');
   return `<!doctype html>
 <html lang="en-AU">
 <head>
@@ -51,14 +61,12 @@ ${noindex ? '<meta name="robots" content="noindex, nofollow" />' : `<link rel="c
 <link rel="stylesheet" href="${root}styles.css" />
 </head>
 <body>
-<header class="top"><div class="wrap top-inner">
-<a class="brandmark" href="${root}#home" aria-label="OpenCompare, home">${LOGO}<span class="wordmark"><span class="wm-name">OpenCompare</span><span class="wm-sub">Independent comparisons from official open data</span></span></a>
-<nav class="menu" aria-label="Main">${nav}</nav>
-</div></header>
+${header(root, current)}
 <main class="wrap static-page">
 ${body}
 </main>
 <footer class="wrap foot"><p>Prices are as published by each energy retailer through the Consumer Data Right and may differ from what you're offered. General information only; check a plan's fact sheet before switching. <a href="${root}privacy/">Privacy</a></p></footer>
+${MENU_SCRIPT}
 </body>
 </html>
 `;
