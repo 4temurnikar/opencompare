@@ -1,5 +1,6 @@
 // Energy rankings and plain-English insights, using the same cost model as the website.
 import { annualCost, bestFit, DEFAULTS } from '../../site/energy-cost.js';
+import { networkStates } from './normalise.mjs';
 
 const STATE_NAME = { NSW: 'NSW', VIC: 'Victoria', QLD: 'Queensland', SA: 'South Australia', ACT: 'the ACT', TAS: 'Tasmania', WA: 'WA', NT: 'the NT' };
 const $ = (n) => `$${Math.round(n).toLocaleString('en-AU')}`;
@@ -11,7 +12,10 @@ const median = (xs) => {
 };
 const residential = (p) => p.cu !== 'BUSINESS';
 const hasFuel = (p, fuel) => (fuel === 'E' ? ['ELECTRICITY', 'DUAL'] : ['GAS', 'DUAL']).includes(p.f) && (fuel === 'E' ? p.e : p.g)?.tp?.length;
-const usable = (p, fuel) => p.detail && !p.bad && residential(p) && hasFuel(p, fuel) && !(fuel === 'E' ? p.e : p.g).tp.some((t) => t.kind === 'demand');
+// A plan named as a demand tariff whose demand charges aren't published would look far cheaper than it is
+export const namedDemand = (p) => /\bdemand\b/i.test(p.n || '');
+export const isDemand = (p, fuel) => (fuel === 'E' ? p.e : p.g)?.tp?.some((t) => t.kind === 'demand') || (fuel === 'E' && namedDemand(p));
+const usable = (p, fuel) => p.detail && !p.bad && residential(p) && hasFuel(p, fuel) && !isDemand(p, fuel);
 // Plans open only to particular groups shouldn't headline a ranking
 const RESTRICTED = new Set(['SENIOR_CARD', 'SPORT_CLUB_MEMBER', 'ORG_MEMBER', 'LOYALTY_MEMBER', 'GROUP_BUY_MEMBER', 'THIRD_PARTY_ONLY', 'REQ_EQUIP_SUPPLIER', 'CONTINGENT_PLAN', 'EXISTING_BATTERY', 'EXISTING_POOL', 'SPECIFIC_LOCATION']);
 const open = (p, fuel) => !((fuel === 'E' ? p.e : p.g).elig || []).some((e) => RESTRICTED.has(e.type));
@@ -24,20 +28,34 @@ export function typicalCosts(plans) {
   }
 }
 
-/** The network in each state with the most residential market plans: used for headline boards */
-function mainNetworks(plans, fuel) {
+// Where one network serves most households in a state, headline it even if others list more plans
+const PREFERRED = { E: { NSW: /^ausgrid$/i }, G: { NSW: /jemena/i } };
+/**
+ * The network each state's headline board is ranked on: a network that belongs to that state (plans
+ * near borders list networks from the neighbouring state too), the preferred one where set, otherwise
+ * the one with the most residential market plans.
+ */
+export function mainNetworks(plans, fuel) {
   const count = new Map();
   for (const p of plans) {
     if (!usable(p, fuel) || p.t !== 'MARKET') continue;
-    for (const s of p.st) for (const d of p.d) {
-      const k = `${s}|${d}`;
-      count.set(k, (count.get(k) || 0) + 1);
-    }
+    for (const s of p.st)
+      for (const d of p.d) {
+        if (!networkStates(d).includes(s)) continue;
+        const k = `${s}|${d}`;
+        count.set(k, (count.get(k) || 0) + 1);
+      }
   }
-  const best = new Map();
+  const byState = new Map();
   for (const [k, n] of count) {
     const [s, d] = k.split('|');
-    if (!best.has(s) || n > best.get(s).n) best.set(s, { state: s, network: d, n });
+    (byState.get(s) || byState.set(s, []).get(s)).push({ state: s, network: d, n });
+  }
+  const best = new Map();
+  for (const [s, list] of byState) {
+    const pref = PREFERRED[fuel]?.[s];
+    const pool = pref && list.some((x) => pref.test(x.network)) ? list.filter((x) => pref.test(x.network)) : list;
+    best.set(s, pool.sort((a, b) => b.n - a.n || a.network.localeCompare(b.network))[0]);
   }
   return [...best.values()].sort((a, b) => b.n - a.n);
 }
@@ -61,14 +79,19 @@ export function buildEnergyInsights(plans) {
     const usage = DEFAULTS[fuel].usage.toLocaleString('en-AU');
     const fuelName = fuel === 'E' ? 'electricity' : 'gas';
     for (const { state, network } of mainNetworks(plans, fuel)) {
-      const rows = rankNetwork(plans, fuel, state, network);
+      const all = rankNetwork(plans, fuel, state, network);
+      // A typical bill under half the network's median isn't a believable headline (e.g. an export-only
+      // plan with no charges at all): keep such plans out of rankings and say so
+      const mid = median(all.filter((r) => r.type === 'MARKET').map((r) => r.cost));
+      const held = all.filter((r) => mid && r.cost < mid * 0.5);
+      const rows = all.filter((r) => !held.includes(r));
       const market = rows.filter((r) => r.type === 'MARKET' && r.open);
       const standing = rows.filter((r) => r.type === 'STANDING' || r.type === 'REGULATED');
       // Each retailer's cheapest open market plan
       const perRetailer = [];
       const seenR = new Set();
       for (const r of market) if (!seenR.has(r.retailer)) seenR.add(r.retailer), perRetailer.push(r);
-      const b = { id: `${fuel}-${state}`, fuel, state, network, usage: DEFAULTS[fuel].usage, unit, n: perRetailer.length, median: median(market.map((r) => r.cost)), ranking: perRetailer.slice(0, 40) };
+      const b = { id: `${fuel}-${state}`, fuel, state, network, usage: DEFAULTS[fuel].usage, unit, n: perRetailer.length, median: median(market.map((r) => r.cost)), ranking: perRetailer.slice(0, 40), heldBack: held.map((r) => ({ id: r.id, retailer: r.retailer, plan: r.plan, cost: r.cost, why: 'typical bill under half the network median' })) };
       boards.push(b);
       if (perRetailer.length >= 2) {
         const [top, second] = perRetailer;

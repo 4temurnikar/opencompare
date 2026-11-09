@@ -97,11 +97,14 @@ export function checkAccuracy(rec) {
   if (rec.et && Date.parse(rec.et) < now) out.push({ code: 'E_EXPIRED', field: 'effectiveTo', value: rec.et, detail: 'plan listed as current but its end date has passed' });
   if (rec.up && now - Date.parse(rec.up) > 2 * 365 * 864e5) out.push({ code: 'STALE_LAST_UPDATED', field: 'lastUpdated', value: rec.up });
   // Links are optional in the energy standard: reported once per retailer (E_NO_PLAN_LINKS), not per plan
+  if (rec.e?.tp?.length && /\bdemand\b/i.test(rec.n || '') && !rec.e.tp.some((t) => t.kind === 'demand'))
+    out.push({ code: 'E_DEMAND_NOT_PUBLISHED', field: 'electricity tariff', detail: 'the plan is named as a demand tariff but no demand charges are published, so its cost can’t be worked out' });
   if (!rec.st.length) out.push({ code: 'E_NO_GEOGRAPHY', field: 'geography', detail: 'no postcodes or recognised networks, so it can’t be matched to an address' });
   return out;
 }
 
 export const ENERGY_LABELS = {
+  E_DEMAND_NOT_PUBLISHED: 'Named as a demand tariff, but no demand charges are published',
   E_FEED_FAILED: 'Plan feed unreachable or returning errors',
   E_DETAIL_FAILED: 'Plan detail couldn’t be read',
   RULE_CONDITIONAL: 'A field the standard requires in this situation is missing or wrong',
