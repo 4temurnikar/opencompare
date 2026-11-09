@@ -1,13 +1,13 @@
 {
   "siteUrl": "https://4temurnikar.github.io/opencompare",
-  "operator": "",
+  "operator": "Agastya Advisory",
   "abn": "",
-  "contactEmail": "",
+  "contactEmail": "info@opencompare.com.au",
   "newsletter": {
-    "enabled": false,
-    "provider": "",
+    "enabled": true,
+    "provider": "https://4temurnikar.github.io/opencompare/brief/rss.xml",
     "providerPrivacyUrl": "",
-    "mode": "form",
+    "mode": "link",
     "action": "",
     "emailField": "email",
     "hidden": {},
