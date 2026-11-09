@@ -1,0 +1,45 @@
+name: Publish weekly brief
+
+# Run this from the Actions tab after checking the preview link the Monday run printed.
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Brief date (YYYY-MM-DD). Leave empty for the latest unpublished brief.'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Same group as the daily refresh, so the two never overlap
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Publish the brief
+        run: node pipeline/energy/brief.mjs publish ${{ inputs.date }}
+      - name: Commit
+        run: |
+          git config user.name "cdr-refresh-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A site/data/brief site/brief site/privacy site/sitemap.xml site/robots.txt
+          git diff --cached --quiet && { echo "Nothing new to publish"; exit 0; }
+          git commit -m "Publish weekly brief ${{ inputs.date }}"
+          for i in 1 2 3; do git push origin HEAD:main && break; git pull --rebase origin main; done
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - uses: actions/deploy-pages@v4
