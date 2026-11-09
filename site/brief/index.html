@@ -17,10 +17,53 @@
 <link rel="stylesheet" href="../styles.css" />
 </head>
 <body>
-<header class="top"><div class="wrap top-inner">
-<a class="brandmark" href="../#home" aria-label="OpenCompare, home"><svg class="logo" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><defs><clipPath id="logo-left"><circle cx="13" cy="17" r="9.5" /></clipPath></defs><circle cx="21" cy="17" r="9.5" class="logo-lens" clip-path="url(#logo-left)" /><circle cx="13" cy="17" r="9.5" class="logo-ring" /><circle cx="21" cy="17" r="9.5" class="logo-ring" /></svg><span class="wordmark"><span class="wm-name">OpenCompare</span><span class="wm-sub">Independent comparisons from official open data</span></span></a>
-<nav class="menu" aria-label="Main"><a href="../#home">Home</a><a href="../#electricity">Electricity</a><a href="../#gas">Gas</a><a href="../brief/" aria-current="page">Weekly brief</a><a href="../#about">About</a></nav>
-</div></header>
+<header class="top">
+    <div class="wrap top-inner">
+      <a class="brandmark" href="../#home" aria-label="OpenCompare, home">
+        <svg class="logo" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+          <defs><clipPath id="logo-left"><circle cx="13" cy="17" r="9.5" /></clipPath></defs>
+          <circle cx="21" cy="17" r="9.5" class="logo-lens" clip-path="url(#logo-left)" />
+          <circle cx="13" cy="17" r="9.5" class="logo-ring" />
+          <circle cx="21" cy="17" r="9.5" class="logo-ring" />
+        </svg>
+        <span class="wordmark"><span class="wm-name">OpenCompare</span><span class="wm-sub">Independent comparisons from official open data</span></span>
+      </a>
+      <nav class="menu" id="menu" aria-label="Main">
+        <a href="../#home">Home</a>
+        <div class="menu-group">
+          <button class="menu-trigger" type="button" data-group="energy" aria-expanded="false" aria-controls="menu-energy">
+            Energy
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
+          <div class="menu-panel" id="menu-energy" hidden>
+            <a href="../#electricity">Electricity plans</a>
+            <a href="../#gas">Gas plans</a>
+            <a href="../#solar">Solar feed-in tariffs</a>
+            <a href="../#retailers" class="menu-all">All energy retailers</a>
+          </div>
+        </div>
+        <div class="menu-group" hidden>
+          <button class="menu-trigger" type="button" data-group="banking" aria-expanded="false" aria-controls="menu-banking">
+            Banking
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
+          <div class="menu-panel" id="menu-banking" hidden>
+            <a href="../#home-loans">Home loans</a>
+            <a href="../#savings">Savings accounts</a>
+            <a href="../#term-deposits">Term deposits</a>
+            <a href="../#credit-cards">Credit cards</a>
+            <a href="../#personal-loans">Personal loans</a>
+            <a href="../#banking-insights">Banking insights</a>
+            <a href="../#products" class="menu-all">All banking products</a>
+          </div>
+        </div>
+        <a href="../#insights">Insights</a>
+        <a href="../brief/" aria-current="page">Weekly brief</a>
+        <a href="../#quality">Data quality</a>
+        <a href="../#about">About</a>
+      </nav>
+    </div>
+  </header>
 <main class="wrap static-page">
 <article class="prose"><h1>Weekly energy brief</h1>
 <p class="lede">Every Monday: what changed in Australian energy prices over the past week, worked out from every plan retailers publish under the Consumer Data Right.</p>
@@ -29,5 +72,14 @@
 <p class="small muted"><a href="rss.xml">RSS feed</a></p></article>
 </main>
 <footer class="wrap foot"><p>Prices are as published by each energy retailer through the Consumer Data Right and may differ from what you're offered. General information only; check a plan's fact sheet before switching. <a href="../privacy/">Privacy</a></p></footer>
+<script>
+(() => {
+  const ts = [...document.querySelectorAll('.menu-trigger')];
+  const close = (x) => ts.forEach((t) => { if (t !== x) { t.setAttribute('aria-expanded', 'false'); document.getElementById(t.getAttribute('aria-controls')).hidden = true; } });
+  ts.forEach((t) => t.addEventListener('click', (e) => { e.stopPropagation(); const open = t.getAttribute('aria-expanded') === 'true'; close(t); t.setAttribute('aria-expanded', String(!open)); document.getElementById(t.getAttribute('aria-controls')).hidden = open; }));
+  document.addEventListener('click', (e) => !e.target.closest('.menu-group') && close());
+  document.addEventListener('keydown', (e) => e.key === 'Escape' && close());
+})();
+</script>
 </body>
 </html>
