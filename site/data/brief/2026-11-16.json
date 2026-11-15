@@ -1,0 +1,392 @@
+{
+ "date": "2026-11-16",
+ "from": "2026-11-10",
+ "generatedAt": "2026-11-15T18:06:07.557Z",
+ "typical": {
+  "E": 4000,
+  "G": 20000
+ },
+ "counts": {
+  "tracked": 20080,
+  "retailers": 42,
+  "changed": 89,
+  "rises": 30,
+  "cuts": 9,
+  "other": 50,
+  "unpriced": 0,
+  "business": 0,
+  "unconfirmed": 0,
+  "new": 425,
+  "gone": 556
+ },
+ "rises": [
+  {
+   "retailer": "AGL",
+   "plan": "Residential Seniors",
+   "fuel": "G",
+   "versions": 5,
+   "networks": [
+    "AGN Murray Valley (NSW)",
+    "Jemena Coastal Network",
+    "Jemena Country Network",
+    "AGN Albury",
+    "AGN Wagga Wagga",
+    "AGN Temora, Culcairn, Holbrook, Henty and Walla Walla"
+   ],
+   "states": [
+    "NSW"
+   ],
+   "lo": 107,
+   "hi": 162,
+   "nowLo": 838,
+   "nowHi": 1210,
+   "ids": [
+    "AGL1055927MRG5@EME",
+    "AGL1055932MRG5@EME",
+    "AGL1055934MRG5@EME",
+    "AGL1055936MRG5@EME",
+    "AGL1055946MRG5@EME"
+   ],
+   "delta": 162
+  },
+  {
+   "retailer": "AGL",
+   "plan": "Residential Smart Saver",
+   "fuel": "G",
+   "versions": 10,
+   "networks": [
+    "AGN Albury",
+    "Jemena Coastal Network",
+    "Jemena Country Network",
+    "AGN Wagga Wagga",
+    "AGN Temora, Culcairn, Holbrook, Henty and Walla Walla",
+    "AGN Murray Valley (NSW)"
+   ],
+   "states": [
+    "NSW"
+   ],
+   "lo": 58,
+   "hi": 99,
+   "nowLo": 879,
+   "nowHi": 1268,
+   "ids": [
+    "AGL1055848MRG5@EME",
+    "AGL1055858MRG5@EME",
+    "AGL1055862MRG5@EME",
+    "AGL1055863MRG5@EME",
+    "AGL1055864MRG5@EME",
+    "AGL1055996MRG5@EME",
+    "AGL1055999MRG5@EME",
+    "AGL1056000MRG5@EME",
+    "AGL1056005MRG5@EME",
+    "AGL1056009MRG5@EME"
+   ],
+   "delta": 99
+  },
+  {
+   "retailer": "AGL",
+   "plan": "Residential Smart Saver - BP Fuel",
+   "fuel": "G",
+   "versions": 5,
+   "networks": [
+    "AGN Wagga Wagga",
+    "AGN Albury",
+    "AGN Temora, Culcairn, Holbrook, Henty and Walla Walla",
+    "AGN Murray Valley (NSW)",
+    "Jemena Coastal Network",
+    "Jemena Country Network"
+   ],
+   "states": [
+    "NSW"
+   ],
+   "lo": 58,
+   "hi": 99,
+   "nowLo": 879,
+   "nowHi": 1268,
+   "ids": [
+    "AGL1055897MRG5@EME",
+    "AGL1055904MRG5@EME",
+    "AGL1055905MRG5@EME",
+    "AGL1055908MRG5@EME",
+    "AGL1055916MRG5@EME"
+   ],
+   "delta": 99
+  },
+  {
+   "retailer": "AGL",
+   "plan": "Residential Smart Saver - Velocity",
+   "fuel": "G",
+   "versions": 5,
+   "networks": [
+    "AGN Murray Valley (NSW)",
+    "Jemena Coastal Network",
+    "Jemena Country Network",
+    "AGN Albury",
+    "AGN Temora, Culcairn, Holbrook, Henty and Walla Walla",
+    "AGN Wagga Wagga"
+   ],
+   "states": [
+    "NSW"
+   ],
+   "lo": 58,
+   "hi": 99,
+   "nowLo": 879,
+   "nowHi": 1268,
+   "ids": [
+    "AGL1055876MRG5@EME",
+    "AGL1055879MRG5@EME",
+    "AGL1055895MRG5@EME",
+    "AGL1055901MRG5@EME",
+    "AGL1055923MRG5@EME"
+   ],
+   "delta": 99
+  },
+  {
+   "retailer": "AGL",
+   "plan": "Residential Smart Saver - Westpac",
+   "fuel": "G",
+   "versions": 5,
+   "networks": [
+    "AGN Albury",
+    "AGN Murray Valley (NSW)",
+    "AGN Wagga Wagga",
+    "Jemena Coastal Network",
+    "Jemena Country Network",
+    "AGN Temora, Culcairn, Holbrook, Henty and Walla Walla"
+   ],
+   "states": [
+    "NSW"
+   ],
+   "lo": 58,
+   "hi": 99,
+   "nowLo": 879,
+   "nowHi": 1268,
+   "ids": [
+    "AGL1055870MRG5@EME",
+    "AGL1055871MRG5@EME",
+    "AGL1055878MRG5@EME",
+    "AGL1055880MRG5@EME",
+    "AGL1055902MRG5@EME"
+   ],
+   "delta": 99
+  }
+ ],
+ "cuts": [
+  {
+   "retailer": "Momentum Energy",
+   "plan": "Standing Offer",
+   "fuel": "E",
+   "versions": 1,
+   "networks": [
+    "Ausgrid"
+   ],
+   "states": [
+    "NSW"
+   ],
+   "lo": -86,
+   "hi": -86,
+   "nowLo": 1948,
+   "nowHi": 1948,
+   "ids": [
+    "MOM915980SRE5@EME"
+   ],
+   "delta": -86
+  },
+  {
+   "retailer": "AGL",
+   "plan": "Residential Seniors",
+   "fuel": "E",
+   "versions": 4,
+   "networks": [
+    "Energex"
+   ],
+   "states": [
+    "QLD"
+   ],
+   "lo": -54,
+   "hi": -54,
+   "nowLo": 1639,
+   "nowHi": 1656,
+   "ids": [
+    "AGL1055607MRE5@EME",
+    "AGL1055609MRE5@EME",
+    "AGL1189553MRE3@EME",
+    "AGL1189584MRE3@EME"
+   ],
+   "delta": -54
+  },
+  {
+   "retailer": "AGL",
+   "plan": "Residential Netflix Plan",
+   "fuel": "E",
+   "versions": 4,
+   "networks": [
+    "Energex"
+   ],
+   "states": [
+    "QLD"
+   ],
+   "lo": -1,
+   "hi": -1,
+   "nowLo": 1728,
+   "nowHi": 1728,
+   "ids": [
+    "AGL1067099MRE4@EME",
+    "AGL1067118MRE4@EME",
+    "AGL1067119MRE4@EME",
+    "AGL1189578MRE2@EME"
+   ],
+   "delta": -1
+  }
+ ],
+ "retailers": [
+  {
+   "retailer": "AGL",
+   "rises": 30,
+   "cuts": 8,
+   "other": 50,
+   "avg": 66
+  },
+  {
+   "retailer": "Momentum Energy",
+   "rises": 0,
+   "cuts": 1,
+   "other": 0,
+   "avg": -86
+  }
+ ],
+ "fit": {
+  "up": 44,
+  "down": 0
+ },
+ "cheapest": [
+  {
+   "board": "E-NSW",
+   "fuel": "E",
+   "state": "NSW",
+   "network": "Ausgrid",
+   "retailer": "Momentum Energy",
+   "plan": "Home Comfort Electricity",
+   "cost": 1377,
+   "median": 1752,
+   "prev": null
+  },
+  {
+   "board": "E-VIC",
+   "fuel": "E",
+   "state": "VIC",
+   "network": "AusNet Services (electricity)",
+   "retailer": "Flow Power",
+   "plan": "Flow Home Battery + Solar + EV: Variable Prices (estimate)",
+   "cost": 1131,
+   "median": 1615,
+   "prev": null
+  },
+  {
+   "board": "E-QLD",
+   "fuel": "E",
+   "state": "QLD",
+   "network": "Energex",
+   "retailer": "Globird Energy",
+   "plan": "GLOHOME Residential (Flat Rate)-Energex",
+   "cost": 1326,
+   "median": 1711,
+   "prev": null
+  },
+  {
+   "board": "E-SA",
+   "fuel": "E",
+   "state": "SA",
+   "network": "SA Power Networks",
+   "retailer": "iO Energy",
+   "plan": "Basic Home | Free meter exchange | Controlled load",
+   "cost": 1201,
+   "median": 2237.5,
+   "prev": null
+  },
+  {
+   "board": "E-ACT",
+   "fuel": "E",
+   "state": "ACT",
+   "network": "Evoenergy",
+   "retailer": "ActewAGL",
+   "plan": "Smart Saver plan time-of-use",
+   "cost": 1462,
+   "median": 1881,
+   "prev": null
+  },
+  {
+   "board": "E-TAS",
+   "fuel": "E",
+   "state": "TAS",
+   "network": "TasNetworks",
+   "retailer": "Solstice Energy",
+   "plan": "Select Residential Time of Use + Off Peak Night",
+   "cost": 1546,
+   "median": 1695.5,
+   "prev": null
+  },
+  {
+   "board": "G-NSW",
+   "fuel": "G",
+   "state": "NSW",
+   "network": "Jemena Coastal Network",
+   "retailer": "Sumo",
+   "plan": "Sumo Winter Saver",
+   "cost": 839,
+   "median": 1164,
+   "prev": null
+  },
+  {
+   "board": "G-VIC",
+   "fuel": "G",
+   "state": "VIC",
+   "network": "Australian Gas Networks",
+   "retailer": "CovaU",
+   "plan": "Super Saver Residential Gas AGN",
+   "cost": 773,
+   "median": 1110,
+   "prev": null
+  },
+  {
+   "board": "G-QLD",
+   "fuel": "G",
+   "state": "QLD",
+   "network": "AGN - Brisbane and Riverview",
+   "retailer": "CovaU",
+   "plan": "Freedom Residential Gas AGN",
+   "cost": 1251,
+   "median": 1312,
+   "prev": null
+  },
+  {
+   "board": "G-SA",
+   "fuel": "G",
+   "state": "SA",
+   "network": "AGN Metro/Barossa/Peterborough",
+   "retailer": "Alinta Energy",
+   "plan": "HomeDeal Flow - Gas",
+   "cost": 1226,
+   "median": 1586,
+   "prev": null
+  },
+  {
+   "board": "G-ACT",
+   "fuel": "G",
+   "state": "ACT",
+   "network": "Evoenergy ACT",
+   "retailer": "Origin Energy",
+   "plan": "Origin Go Variable Ongoing - New & Move Customers only",
+   "cost": 1002,
+   "median": 1215,
+   "prev": null
+  }
+ ],
+ "quality": {
+  "critical": 0,
+  "major": 0,
+  "prev": null
+ },
+ "title": "Energy prices this week: 30 plans up, 9 down",
+ "lead": "In the seven days to 16 November 2026, retailers changed prices on 89 plans: 30 home plans now cost a typical household more, 9 cost less and 50 home plans changed in ways that don't affect a typical bill, such as fees or feed-in tariffs. Retailers launched 425 new plans and withdrew 556 plans. The biggest rise was on AGL's Residential Seniors (gas): up to $162 a year for a typical home. The biggest cut was on Momentum Energy's Standing Offer (electricity): up to $86 a year less."
+}
