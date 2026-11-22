@@ -1,0 +1,295 @@
+{
+ "date": "2026-11-23",
+ "from": "2026-11-17",
+ "generatedAt": "2026-11-22T18:12:21.289Z",
+ "typical": {
+  "E": 4000,
+  "G": 20000
+ },
+ "counts": {
+  "tracked": 20080,
+  "retailers": 42,
+  "changed": 269,
+  "rises": 4,
+  "cuts": 6,
+  "other": 101,
+  "unpriced": 36,
+  "business": 122,
+  "unconfirmed": 0,
+  "new": 193,
+  "gone": 194
+ },
+ "rises": [
+  {
+   "retailer": "Sumo",
+   "plan": "Sumo Standing Offer",
+   "fuel": "E",
+   "versions": 4,
+   "networks": [
+    "Essential Energy Far West",
+    "Essential Energy Standard",
+    "Essential Energy"
+   ],
+   "states": [
+    "NSW"
+   ],
+   "lo": 1,
+   "hi": 1,
+   "nowLo": 2355,
+   "nowHi": 2355,
+   "ids": [
+    "SUM1122133SRE3@EME",
+    "SUM1122134SRE3@EME",
+    "SUM1122136SRE3@EME",
+    "SUM1122167SRE3@EME"
+   ],
+   "delta": 1
+  }
+ ],
+ "cuts": [
+  {
+   "retailer": "Sumo",
+   "plan": "Sumo Standing Offer",
+   "fuel": "E",
+   "versions": 1,
+   "networks": [
+    "Ausgrid"
+   ],
+   "states": [
+    "NSW"
+   ],
+   "lo": -276,
+   "hi": -276,
+   "nowLo": 1932,
+   "nowHi": 1932,
+   "ids": [
+    "SUM1122202SRE3@EME"
+   ],
+   "delta": -276
+  },
+  {
+   "retailer": "Sumo",
+   "plan": "Sumo Winter Saver Plus",
+   "fuel": "E",
+   "versions": 5,
+   "networks": [
+    "Ausgrid",
+    "Essential Energy Far West",
+    "Essential Energy Standard",
+    "Essential Energy"
+   ],
+   "states": [
+    "NSW"
+   ],
+   "lo": -32,
+   "hi": -3,
+   "nowLo": 1574,
+   "nowHi": 1820,
+   "ids": [
+    "SUM1201995MRE2@EME",
+    "SUM1202034MRE2@EME",
+    "SUM1202035MRE2@EME",
+    "SUM1202036MRE2@EME",
+    "SUM1202037MRE2@EME"
+   ],
+   "delta": -32
+  }
+ ],
+ "retailers": [
+  {
+   "retailer": "Red Energy",
+   "rises": 0,
+   "cuts": 0,
+   "other": 80,
+   "avg": null
+  },
+  {
+   "retailer": "Sumo",
+   "rises": 4,
+   "cuts": 6,
+   "other": 57,
+   "avg": -40
+  }
+ ],
+ "fit": {
+  "up": 0,
+  "down": 0
+ },
+ "cheapest": [
+  {
+   "board": "E-NSW",
+   "fuel": "E",
+   "state": "NSW",
+   "network": "Ausgrid",
+   "retailer": "Momentum Energy",
+   "plan": "Home Comfort Electricity",
+   "cost": 1377,
+   "median": 1750.5,
+   "prev": {
+    "retailer": "Momentum Energy",
+    "plan": "Home Comfort Electricity",
+    "cost": 1377
+   }
+  },
+  {
+   "board": "E-VIC",
+   "fuel": "E",
+   "state": "VIC",
+   "network": "AusNet Services (electricity)",
+   "retailer": "Flow Power",
+   "plan": "Flow Home Battery + Solar + EV: Variable Prices (estimate)",
+   "cost": 1131,
+   "median": 1608,
+   "prev": {
+    "retailer": "Flow Power",
+    "plan": "Flow Home Battery + Solar + EV: Variable Prices (estimate)",
+    "cost": 1131
+   }
+  },
+  {
+   "board": "E-QLD",
+   "fuel": "E",
+   "state": "QLD",
+   "network": "Energex",
+   "retailer": "Globird Energy",
+   "plan": "GLOHOME Residential (Flat Rate)-Energex",
+   "cost": 1326,
+   "median": 1709,
+   "prev": {
+    "retailer": "Globird Energy",
+    "plan": "GLOHOME Residential (Flat Rate)-Energex",
+    "cost": 1326
+   }
+  },
+  {
+   "board": "E-SA",
+   "fuel": "E",
+   "state": "SA",
+   "network": "SA Power Networks",
+   "retailer": "Globird Energy",
+   "plan": "WHOLESAVE Resi (Single Rate CTL) estimate-SAPN",
+   "cost": 1758,
+   "median": 2239,
+   "prev": {
+    "retailer": "iO Energy",
+    "plan": "Basic Home | Free meter exchange | Controlled load",
+    "cost": 1201
+   }
+  },
+  {
+   "board": "E-ACT",
+   "fuel": "E",
+   "state": "ACT",
+   "network": "Evoenergy",
+   "retailer": "ActewAGL",
+   "plan": "Smart Saver plan time-of-use",
+   "cost": 1462,
+   "median": 1881,
+   "prev": {
+    "retailer": "ActewAGL",
+    "plan": "Smart Saver plan time-of-use",
+    "cost": 1462
+   }
+  },
+  {
+   "board": "E-TAS",
+   "fuel": "E",
+   "state": "TAS",
+   "network": "TasNetworks",
+   "retailer": "Solstice Energy",
+   "plan": "Select Residential Time of Use + Off Peak Night",
+   "cost": 1546,
+   "median": 1695.5,
+   "prev": {
+    "retailer": "Solstice Energy",
+    "plan": "Select Residential Time of Use + Off Peak Night",
+    "cost": 1546
+   }
+  },
+  {
+   "board": "G-NSW",
+   "fuel": "G",
+   "state": "NSW",
+   "network": "Jemena Coastal Network",
+   "retailer": "Sumo",
+   "plan": "Sumo Winter Saver",
+   "cost": 839,
+   "median": 1164,
+   "prev": {
+    "retailer": "Sumo",
+    "plan": "Sumo Winter Saver",
+    "cost": 839
+   }
+  },
+  {
+   "board": "G-VIC",
+   "fuel": "G",
+   "state": "VIC",
+   "network": "Australian Gas Networks",
+   "retailer": "CovaU",
+   "plan": "Super Saver Residential Gas AGN",
+   "cost": 773,
+   "median": 1110,
+   "prev": {
+    "retailer": "CovaU",
+    "plan": "Super Saver Residential Gas AGN",
+    "cost": 773
+   }
+  },
+  {
+   "board": "G-QLD",
+   "fuel": "G",
+   "state": "QLD",
+   "network": "AGN - Brisbane and Riverview",
+   "retailer": "CovaU",
+   "plan": "Freedom Residential Gas AGN",
+   "cost": 1251,
+   "median": 1312,
+   "prev": {
+    "retailer": "CovaU",
+    "plan": "Freedom Residential Gas AGN",
+    "cost": 1251
+   }
+  },
+  {
+   "board": "G-SA",
+   "fuel": "G",
+   "state": "SA",
+   "network": "AGN Metro/Barossa/Peterborough",
+   "retailer": "Alinta Energy",
+   "plan": "HomeDeal Flow - Gas",
+   "cost": 1226,
+   "median": 1586,
+   "prev": {
+    "retailer": "Alinta Energy",
+    "plan": "HomeDeal Flow - Gas",
+    "cost": 1226
+   }
+  },
+  {
+   "board": "G-ACT",
+   "fuel": "G",
+   "state": "ACT",
+   "network": "Evoenergy ACT",
+   "retailer": "Origin Energy",
+   "plan": "Origin Go Variable Ongoing - New & Move Customers only",
+   "cost": 1002,
+   "median": 1215,
+   "prev": {
+    "retailer": "Origin Energy",
+    "plan": "Origin Go Variable Ongoing - New & Move Customers only",
+    "cost": 1002
+   }
+  }
+ ],
+ "quality": {
+  "critical": 0,
+  "major": 0,
+  "prev": {
+   "critical": 0,
+   "major": 0
+  }
+ },
+ "title": "Energy prices this week: 4 plans up, 6 down",
+ "lead": "In the seven days to 23 November 2026, retailers changed prices on 269 plans: 4 home plans now cost a typical household more, 6 cost less, 101 home plans changed in ways that don't affect a typical bill, such as fees or feed-in tariffs, 36 home plans changed that we can't price for a typical home, such as demand tariffs and 122 business plans changed. Retailers launched 193 new plans and withdrew 194 plans. The biggest rise was on Sumo's Sumo Standing Offer (electricity): up to $1 a year for a typical home. The biggest cut was on Sumo's Sumo Standing Offer (electricity): up to $276 a year less."
+}
